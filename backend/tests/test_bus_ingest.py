@@ -22,12 +22,12 @@ def test_topic_matches(f, t, ok):
 
 def test_retained_delivered_to_late_subscriber_and_cleared():
     bus = InMemoryBus()
-    bus.publish("sentinel/x/ota", b"n1", retain=True)
+    bus.publish("sentinel/x/ota/model", b"n1", retain=True)
     got = []
-    bus.subscribe("sentinel/+/ota", lambda t, p: got.append(p))
+    bus.subscribe("sentinel/+/ota/+", lambda t, p: got.append(p))
     assert got == [b"n1"]
-    bus.publish("sentinel/x/ota", b"", retain=True)
-    assert "sentinel/x/ota" not in bus.retained
+    bus.publish("sentinel/x/ota/model", b"", retain=True)
+    assert "sentinel/x/ota/model" not in bus.retained
 
 
 def pub(env, ev, dev=DEV):

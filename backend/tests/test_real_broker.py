@@ -1,7 +1,7 @@
 """One test against a real MQTT broker over TCP (amqtt in-process, or `mosquitto` if on PATH).
 
-Skipped if no broker can be started. Exercises PahoBus: QoS 1 events, retained OTA
-delivered to a late subscriber, feedback round-trip, and the LWT `offline` status.
+Skipped if no broker can be started. Exercises PahoBus: QoS 1 events, per-kind retained OTA notices
+(`sentinel/{dev}/ota/{kind}`) all delivered to a late subscriber, feedback round-trip, and the LWT `offline` status.
 """
 import asyncio
 import json
@@ -114,13 +114,17 @@ def test_full_flow_over_real_broker(broker_port, tmp_path):
     assert r.status_code == 201
     assert _until(lambda: feedback == [{"v": 1, "event_ts": 77, "label": "false_alarm", "person_id": None}])
 
-    ota = {"kind": "fw_c6", "version": "2.0.1", "url": "https://x/fw.bin", "size": 9, "sha256": "cd" * 32}
-    assert client.post(f"/api/devices/{DEV}/ota", json=ota).status_code == 201
+    sha = "cd" * 32
+    for kind, ver in [("fw_n6", "1.3.0"), ("fw_c6", "2.0.1"), ("model", "0.4.0")]:
+        body = {"kind": kind, "version": ver, "url": f"https://x/{kind}.bin", "size": 9, "sha256": sha}
+        assert client.post(f"/api/devices/{DEV}/ota", json=body).status_code == 201
     time.sleep(0.2)
+    # A device that was asleep for all three publishes still gets one retained notice per kind.
     late = PahoBus("127.0.0.1", broker_port, client_id="late-sub")
-    got = []
-    late.subscribe(f"sentinel/{DEV}/ota", lambda t, p: got.append(json.loads(p)), qos=1)
-    assert _until(lambda: got and got[0]["version"] == "2.0.1"), "retained OTA not delivered"
+    got = {}
+    late.subscribe(f"sentinel/{DEV}/ota/+", lambda t, p: got.__setitem__(t.rsplit("/", 1)[1], json.loads(p)), qos=1)
+    assert _until(lambda: len(got) == 3), f"retained OTA notices not all delivered: {sorted(got)}"
+    assert {k: v["version"] for k, v in got.items()} == {"fw_n6": "1.3.0", "fw_c6": "2.0.1", "model": "0.4.0"}
     late.close()
 
     # Ungraceful disconnect -> broker publishes LWT "offline".

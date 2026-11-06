@@ -14,7 +14,7 @@ from .auth import Authenticator, device_dep, user_dep
 from .bus import Bus
 from .db import Database
 from .ingest import Ingest
-from .schemas import Action, FeedbackIn, FeedbackMsg, OtaIn, OtaNotice, valid_clip_id, valid_dev
+from .schemas import OTA_KINDS, Action, FeedbackIn, FeedbackMsg, OtaIn, OtaKind, OtaNotice, ota_topic, valid_clip_id, valid_dev
 from .storage import ClipNotFound, ClipStore, clip_key, sha256_hex
 
 STATIC = Path(__file__).parent / "static"
@@ -175,14 +175,23 @@ def create_app(settings: Settings, db: Database, store: ClipStore, bus: Bus, ing
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT,
                                 [{"loc": err["loc"], "msg": err["msg"]} for err in e.errors()])
         payload = notice.model_dump_json().encode()
-        bus.publish(f"sentinel/{dev}/ota", payload, qos=1, retain=True)
+        topic = ota_topic(dev, notice.kind)  # one retained notice per kind (INTERFACES §3)
+        bus.publish(topic, payload, qos=1, retain=True)
         db.upsert_ota(dev, notice.kind, notice.version, notice.url, notice.size, notice.sha256)
-        return {"published": json.loads(payload), "retained": True}
+        return {"topic": topic, "published": json.loads(payload), "retained": True}
+
+    @app.delete("/api/devices/{dev}/ota/{kind}", dependencies=user, status_code=status.HTTP_204_NO_CONTENT)
+    def clear_ota_kind(dev: str, kind: OtaKind) -> Response:
+        _dev_or_404(dev)
+        bus.publish(ota_topic(dev, kind), b"", qos=1, retain=True)  # empty retained = clear
+        db.delete_ota(dev, kind)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     @app.delete("/api/devices/{dev}/ota", dependencies=user, status_code=status.HTTP_204_NO_CONTENT)
-    def clear_ota(dev: str) -> Response:
+    def clear_ota_all(dev: str) -> Response:
         _dev_or_404(dev)
-        bus.publish(f"sentinel/{dev}/ota", b"", qos=1, retain=True)  # empty retained = clear
+        for kind in OTA_KINDS:
+            bus.publish(ota_topic(dev, kind), b"", qos=1, retain=True)
         db.delete_ota(dev)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 

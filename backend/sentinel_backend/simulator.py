@@ -45,6 +45,20 @@ class DeviceSim:
     energy_used_mj: float = 0.0
     soc0: float = 0.95
     seq: int = 0
+    ota_notices: dict = field(default_factory=dict)   # kind -> latest notice (retained, per kind)
+    feedback: list = field(default_factory=list)
+
+    def subscribe(self, bus: Bus) -> None:
+        """Downlink: `sentinel/{dev}/ota/+` (retained, one per kind) and `sentinel/{dev}/feedback`."""
+        def on_ota(topic: str, payload: bytes) -> None:
+            kind = topic.rsplit("/", 1)[-1]
+            if payload:
+                self.ota_notices[kind] = json.loads(payload)
+            else:
+                self.ota_notices.pop(kind, None)  # retained notice cleared
+
+        bus.subscribe(f"sentinel/{self.dev}/ota/+", on_ota, qos=1)
+        bus.subscribe(f"sentinel/{self.dev}/feedback", lambda t, p: self.feedback.append(json.loads(p)), qos=1)
 
     def _hour(self) -> float:
         return (self.t_ms / 3_600_000.0) % 24
@@ -151,6 +165,8 @@ def run(
 ) -> dict:
     """Publish a full simulated session. Clips go first (HTTP PUT preferred), then the event."""
     devices = make_devices(n_devices, seed)
+    for d in devices:
+        d.subscribe(bus)
     rng = random.Random(seed + 7)
     stats = {"events": 0, "clips": 0, "dups": 0, "upload_failures": 0}
     for d in devices:
@@ -176,6 +192,8 @@ def run(
             bus.publish(f"sentinel/{d.dev}/event", payload, qos=1)
             stats["dups"] += 1
     stats["devices"] = [d.dev for d in devices]
+    stats["ota_notices"] = {d.dev: dict(d.ota_notices) for d in devices}
+    stats["feedback"] = {d.dev: list(d.feedback) for d in devices}
     return stats
 
 

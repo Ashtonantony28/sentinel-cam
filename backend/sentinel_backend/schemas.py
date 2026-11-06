@@ -25,6 +25,14 @@ Wake = Literal["PIR", "RADAR", "BUTTON", "TIMER"]
 Action = Literal["NONE", "LOG_KNOWN", "NOTIFY_UNKNOWN_WITH_CLIP", "RING"]
 FeedbackLabel = Literal["false_alarm", "person", "known"]
 OtaKind = Literal["fw_n6", "fw_c6", "model"]
+OTA_KINDS: tuple[str, ...] = ("fw_n6", "fw_c6", "model")
+
+
+def ota_topic(dev: str, kind: str) -> str:
+    """INTERFACES §3: `sentinel/{dev}/ota/{kind}`, retained, one notice per kind."""
+    if kind not in OTA_KINDS:
+        raise ValueError(f"bad OTA kind {kind!r}")
+    return f"sentinel/{dev}/ota/{kind}"
 
 
 
@@ -106,7 +114,7 @@ class FeedbackMsg(_Strict):
 
 
 class OtaNotice(_Strict):
-    """`sentinel/{dev}/ota` payload (backend -> device, retained)."""
+    """`sentinel/{dev}/ota/{kind}` payload (backend -> device, retained; `kind` matches the topic)."""
 
     v: Literal[1] = 1
     kind: OtaKind

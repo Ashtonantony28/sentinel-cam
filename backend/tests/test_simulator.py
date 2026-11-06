@@ -66,3 +66,18 @@ def test_end_to_end_mqtt_clips(env):
     clip_ids = [e["clip_id"] for e in events if e["clip_id"]]
     assert len(clip_ids) == st["clips"] > 0
     assert all(env.db.clip(c) is not None for c in clip_ids)
+
+
+def test_simulated_devices_receive_per_kind_ota_and_feedback(env):
+    """OTA notices published while the fleet is offline are all seen when it connects."""
+    from sentinel_backend.simulator import make_devices
+
+    dev = make_devices(1, seed=5)[0].dev
+    sha = "ef" * 32
+    for kind, ver in [("fw_n6", "1.3.0"), ("model", "0.4.0"), ("fw_c6", "2.0.1")]:
+        r = env.client.post(f"/api/devices/{dev}/ota",
+                            json={"kind": kind, "version": ver, "url": f"https://x/{kind}", "size": 1, "sha256": sha})
+        assert r.status_code == 201
+    st = run(env.bus, None, n_devices=1, events_per_device=5, seed=5, mqtt_clips=True)
+    assert {k: v["version"] for k, v in st["ota_notices"][dev].items()} == \
+        {"fw_n6": "1.3.0", "model": "0.4.0", "fw_c6": "2.0.1"}

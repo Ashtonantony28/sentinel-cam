@@ -1,0 +1,106 @@
+{
+  "contract": "docs/INTERFACES.md \u00a71",
+  "generator": "python -m sentinel_ml.golden (ml/sentinel_ml/golden.py), seed 20261106",
+  "n_queries": 64,
+  "n_people": 8,
+  "people": [
+    {
+      "id": 1,
+      "name": "Ashton",
+      "n_protos": 5,
+      "threshold_q15": 18022
+    },
+    {
+      "id": 2,
+      "name": "Alex",
+      "n_protos": 3,
+      "threshold_q15": 18022
+    },
+    {
+      "id": 3,
+      "name": "Mom",
+      "n_protos": 20,
+      "threshold_q15": 18022
+    },
+    {
+      "id": 4,
+      "name": "Dad",
+      "n_protos": 1,
+      "threshold_q15": 18022
+    },
+    {
+      "id": 7,
+      "name": "Strict-Sam",
+      "n_protos": 4,
+      "threshold_q15": 22938
+    },
+    {
+      "id": 9,
+      "name": "Lenient-Lee",
+      "n_protos": 4,
+      "threshold_q15": 13107
+    },
+    {
+      "id": 12,
+      "name": "Twin-A",
+      "n_protos": 2,
+      "threshold_q15": 18022
+    },
+    {
+      "id": 13,
+      "name": "Twin-B",
+      "n_protos": 2,
+      "threshold_q15": 18022
+    }
+  ],
+  "constants": {
+    "emb_dim": 128,
+    "quant_scale": "1/127",
+    "margin": 0.05,
+    "default_threshold": 0.55,
+    "max_people": 16,
+    "max_protos": 20
+  },
+  "rules": [
+    "q = round_half_away_from_zero(clamp(x * 127.0f, -127, 127)) in float32 (C roundf); NaN -> 0",
+    "cos(a,b) = dot_i32(a,b) / (sqrt(dot_i32(a,a)) * sqrt(dot_i32(b,b))); 0 if either norm is 0",
+    "score(person) = max over its prototypes",
+    "match iff best >= threshold_q15(best)/32768 AND best - second >= 0.05; second = -1.0 if only one person",
+    "ties for best: first in gallery order (a tie always fails the margin)",
+    "match_id = -1 means unknown; best_id = -1 only for an empty gallery"
+  ],
+  "tolerances": {
+    "score_abs": 1e-05,
+    "decision_boundary_gap": 0.001,
+    "note": "decisions must match exactly; scores within score_abs"
+  },
+  "blob_validation_order": [
+    "TRUNCATED(len<12)",
+    "BAD_CRC",
+    "BAD_MAGIC",
+    "BAD_VERSION",
+    "TOO_MANY_PEOPLE",
+    "TRUNCATED|BAD_PROTO_COUNT (per person)",
+    "TRAILING_BYTES",
+    "DUPLICATE_ID"
+  ],
+  "sha256": {
+    "bad/bad_crc.sgal": "717977cbf5c362e7e15db2527ecb728aabbced12c292754f3f62a130a8b78920",
+    "bad/bad_magic.sgal": "a1daee54a05544a2568ec5ab63b5a639e1a5a059a60cc4857007b136d4381f6e",
+    "bad/bad_version.sgal": "69858c6438f13246b0d5001325cffd34615fee66982c1017c96bc4b8c67e2e42",
+    "bad/duplicate_id.sgal": "04a7ed47d9b460d4f2590733de993243a54e613a9b3116c07e5861649a9504e2",
+    "bad/expected_errors.csv": "ec639dab95c1376bde4fc79bed57968b5a18bd796975d67887d7ae5599b42b10",
+    "bad/n_people_overruns.sgal": "e265047bb4af08a1a054c6aa9b18e51a7c221024dc0c194b410daed697d87bbe",
+    "bad/too_many_people.sgal": "ecbc69d05960d218fc91efb89ebefb3d22b50da1633c1b99d8277e22c22a657c",
+    "bad/too_many_protos.sgal": "f45b09c9bb7158152eaa8d6f746a8f148ad2dc4582e89c958959d8393d20db13",
+    "bad/trailing_bytes.sgal": "fe533ce272c627de24488b4c13fe8f389d0ea44298d42c80b1c0a9f95004b374",
+    "bad/truncated_short.sgal": "4760e4f62b7eb2679b8f8e94b7d6366cce9c919ad83e7c957eb5af6f76cd72df",
+    "bad/zero_protos.sgal": "a8bd28e51326aa82a1d5ed0ec3930c5579262fb6a2fa259e07ee48c8b4eaceba",
+    "expected.csv": "b91ed0789e19b0944dea76b671d6f2828b948451dcd800e86f2d5bda024da125",
+    "gallery_v1.sgal": "cafc7db362fb50dc7a4ea28d9d6a57e207d00aa11f0aab6864a3834232dba935",
+    "quant_vectors.csv": "c3cd74d6537a38e23f63f49600e87b0eac81981dee6b76c454c2397bf3ac92a8",
+    "queries_f32.bin": "4a25d161a394b1841931672b7f5e342cdd4527f0542d4fee1b6095b7cdb3cf88",
+    "queries_i8.bin": "9f5fe20861b2909b2dd4396565f56164cce10bb0a7e057aee275b4ca7bf2d60d",
+    "scores.csv": "d17455ada34a18d5408b8352bd30203fa64d0e6694bbc40b57b39b6210af85b6"
+  }
+}

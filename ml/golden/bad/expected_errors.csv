@@ -1,0 +1,11 @@
+file,error
+truncated_short.sgal,TRUNCATED
+bad_crc.sgal,BAD_CRC
+bad_magic.sgal,BAD_MAGIC
+bad_version.sgal,BAD_VERSION
+too_many_people.sgal,TOO_MANY_PEOPLE
+n_people_overruns.sgal,TRUNCATED
+zero_protos.sgal,BAD_PROTO_COUNT
+too_many_protos.sgal,BAD_PROTO_COUNT
+trailing_bytes.sgal,TRAILING_BYTES
+duplicate_id.sgal,DUPLICATE_ID

@@ -207,8 +207,11 @@ class Database:
             (dev, kind, version, url, size, sha256, now_ms()),
         )
 
-    def delete_ota(self, dev: str) -> None:
-        self._x("DELETE FROM ota WHERE dev=?", (dev,))
+    def delete_ota(self, dev: str, kind: Optional[str] = None) -> None:
+        if kind is None:
+            self._x("DELETE FROM ota WHERE dev=?", (dev,))
+        else:
+            self._x("DELETE FROM ota WHERE dev=? AND kind=?", (dev, kind))
 
     def ota(self, dev: str) -> list[dict]:
         return [dict(r) for r in self._x("SELECT * FROM ota WHERE dev=? ORDER BY kind", (dev,))]

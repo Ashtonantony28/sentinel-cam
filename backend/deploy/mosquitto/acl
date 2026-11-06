@@ -9,4 +9,4 @@ pattern write sentinel/%u/event
 pattern write sentinel/%u/status
 pattern write sentinel/%u/clip/+
 pattern read  sentinel/%u/feedback
-pattern read  sentinel/%u/ota
+pattern read  sentinel/%u/ota/+
