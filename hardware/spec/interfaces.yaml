@@ -1,0 +1,96 @@
+# Rev A interface / signal map (machine-readable). Prose + diagrams: spec/interfaces.md.
+#
+# Pin policy: ESP32-C6-MINI-1 pad numbers ARE verified (module datasheet pin table, mirror of v1.0:
+# https://files.waveshare.com/wiki/ESP32-C6-Pico/ESP32-C6-MINI-1_Datasheet.pdf). STM32N6 balls are
+# NOT assigned here: every N6 end is a named signal until CubeMX assigns it, TO-VERIFY[TV-14].
+
+# ESP32-C6-MINI-1 GPIO -> module pad, and which GPIOs are LP-capable / strapping (module datasheet).
+c6_mini1:
+  pads: {0: 12, 1: 13, 2: 5, 3: 6, 4: 9, 5: 10, 6: 15, 7: 16, 8: 22, 9: 23, 12: 17, 13: 18, 14: 19, 15: 20, 16: 31, 17: 30, 18: 24, 19: 25, 20: 26, 21: 27, 22: 28, 23: 29}
+  lp_gpio: [0, 1, 2, 3, 4, 5, 6, 7]
+  strapping: [4, 5, 8, 9, 15]   # MTMS, MTDI, GPIO8, GPIO9, GPIO15 (DevKitC-1 user guide pin notes)
+  usb: [12, 13]
+  power_pads: {3V3: 3, EN: 8}
+
+signals:
+  # --- wake sources (must be LP GPIOs so the LP core / deep-sleep wake can see them)
+  - {name: PIR_OUT, group: wake, c6_gpio: 3, c6_pad: 6, n6: null, dir: in_to_c6, domain: AON, lp_wake: true, note: "EKMB digital output"}
+  - {name: BUTTON_N, group: wake, c6_gpio: 2, c6_pad: 5, n6: null, dir: in_to_c6, domain: AON, lp_wake: true, note: "SW1, external pull-up to 3V3_AON, RC debounce"}
+  - {name: RADAR_TD, group: wake, c6_gpio: 4, c6_pad: 9, n6: null, dir: in_to_c6, domain: AON, lp_wake: true, strapping_ok: "MTMS strap; radar output must be low at C6 reset TO-VERIFY[TV-15]", note: "BGT60LTR11 target-detect (DNP)"}
+  - {name: PMIC_INT_N, group: wake, c6_gpio: 5, c6_pad: 10, n6: null, dir: in_to_c6, domain: AON, lp_wake: true, strapping_ok: "MTDI strap; pulled high at reset TO-VERIFY[TV-15]", note: "Wired-OR open-drain: BQ25798 INT + MAX17048 ALRT; read both over I2C to find the source"}
+  # --- always-on I2C (LP_I2C so the LP core can poll the light sensor / gauge)
+  - {name: I2C_AON_SDA, group: i2c_aon, c6_gpio: 6, c6_pad: 15, n6: null, dir: bidir, domain: AON, note: "LP_I2C_SDA; 4.7k to 3V3_AON (value TO-VERIFY[TV-30])"}
+  - {name: I2C_AON_SCL, group: i2c_aon, c6_gpio: 7, c6_pad: 16, n6: null, dir: c6_out, domain: AON, note: "LP_I2C_SCL"}
+  # --- 32 kHz crystal
+  - {name: XTAL_32K_P, group: clock, c6_gpio: 0, c6_pad: 12, n6: null, dir: analog, domain: AON, note: "Y1; TO-VERIFY[TV-17]"}
+  - {name: XTAL_32K_N, group: clock, c6_gpio: 1, c6_pad: 13, n6: null, dir: analog, domain: AON, note: "Y1"}
+  # --- power control of the cortex domain
+  - {name: CTX_EN, group: power, c6_gpio: 14, c6_pad: 19, n6: null, dir: c6_out, domain: AON, note: "U23 ON; 100k pull-down so the cortex is off while the C6 boots"}
+  - {name: CTX_CORE_EN, group: power, c6_gpio: 15, c6_pad: 20, n6: null, dir: c6_out, domain: AON, strapping_ok: "GPIO15 strap; 100k pull-down holds it low at reset TO-VERIFY[TV-15]", note: "U26 input B; forces VDDCORE/VDDA1V8/1V8_CTX off"}
+  - {name: N6_PWR_ON_SENSE, group: power, c6_gpio: 8, c6_pad: 22, n6: PWR_ON, dir: in_to_c6, domain: CTX, strapping_ok: "GPIO8 strap; low while cortex is off; GPIO9 stays high for SPI boot TO-VERIFY[TV-15]", note: "N6 dedicated PWR_ON output (AN6000) sensed through 10k; 40k internal pull-down on N6 side"}
+  # --- ESP-Hosted SPI (C6 = slave, N6 = master); GPIO-matrix pins, configurable in ESP-Hosted TO-VERIFY[TV-16]
+  - {name: HOSTED_SCLK, group: hosted_spi, c6_gpio: 19, c6_pad: 25, n6: SPIx_SCK, dir: in_to_c6, domain: CTX, note: "33 ohm series at N6"}
+  - {name: HOSTED_MOSI, group: hosted_spi, c6_gpio: 20, c6_pad: 26, n6: SPIx_MOSI, dir: in_to_c6, domain: CTX}
+  - {name: HOSTED_MISO, group: hosted_spi, c6_gpio: 21, c6_pad: 27, n6: SPIx_MISO, dir: c6_out, domain: CTX, note: "C6 keeps it Hi-Z when cortex is off (no back-powering)"}
+  - {name: HOSTED_CS, group: hosted_spi, c6_gpio: 18, c6_pad: 24, n6: SPIx_NSS, dir: in_to_c6, domain: CTX}
+  - {name: HOSTED_HANDSHAKE, group: hosted_spi, c6_gpio: 22, c6_pad: 28, n6: GPIO_EXTI_HS, dir: c6_out, domain: CTX}
+  - {name: HOSTED_DATA_READY, group: hosted_spi, c6_gpio: 23, c6_pad: 29, n6: GPIO_EXTI_DR, dir: c6_out, domain: CTX}
+  # --- control UART (C6 UART0 pads; console/flash moves to USB-Serial-JTAG on GPIO12/13)
+  - {name: CTRL_UART_C6_TX, group: ctrl_uart, c6_gpio: 16, c6_pad: 31, n6: USARTx_RX, dir: c6_out, domain: CTX, note: "ROM boot log appears here at C6 reset; N6 is off then. 1k series"}
+  - {name: CTRL_UART_C6_RX, group: ctrl_uart, c6_gpio: 17, c6_pad: 30, n6: USARTx_TX, dir: in_to_c6, domain: CTX}
+  # --- USB (C6 USB-Serial-JTAG for flashing/console)
+  - {name: USB_DN, group: usb, c6_gpio: 12, c6_pad: 17, n6: null, dir: bidir, domain: AON, note: "J1 via U28 ESD"}
+  - {name: USB_DP, group: usb, c6_gpio: 13, c6_pad: 18, n6: null, dir: bidir, domain: AON}
+  # --- boot strap
+  - {name: C6_BOOT, group: debug, c6_gpio: 9, c6_pad: 23, n6: null, dir: in_to_c6, domain: AON, strapping_ok: "GPIO9 boot strap: high = SPI boot; SW2 pulls low for download", note: "Only SW2 + pull-up; no other function"}
+  # --- N6-only signals (balls TO-VERIFY[TV-14])
+  - {name: CSI_CLK_P/N, group: csi2, c6_gpio: null, n6: CSI_CKP/CSI_CKN, dir: in_to_n6, domain: CTX, note: "D-PHY clock lane, 100 ohm diff"}
+  - {name: CSI_D0_P/N, group: csi2, c6_gpio: null, n6: CSI_D0P/CSI_D0N, dir: in_to_n6, domain: CTX, note: "Up to 2.5 Gbit/s/lane (RM0486 CSI-2 host); VD66GY uses 2 x 800 Mbps"}
+  - {name: CSI_D1_P/N, group: csi2, c6_gpio: null, n6: CSI_D1P/CSI_D1N, dir: in_to_n6, domain: CTX, note: "Lane swap possible in software (DLxMAP)"}
+  - {name: CAM_I2C_SCL/SDA, group: i2c_cam, c6_gpio: null, n6: I2Cx_SCL/I2Cx_SDA, dir: bidir, domain: CTX, note: "Separate bus from I2C_AON; see i2c_map.yaml"}
+  - {name: CAM_XSHUTDOWN, group: camera, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX}
+  - {name: CAM_GPIO/FSYNC, group: camera, c6_gpio: null, n6: GPIO, dir: bidir, domain: CTX}
+  - {name: CAM_EXTCLK, group: camera, c6_gpio: null, n6: MCO, dir: n6_out, domain: CTX, note: "Only if the sensor has no on-module oscillator"}
+  - {name: CAM_PWR_EN, group: power, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX, note: "U20/U21 EN, pull-down"}
+  - {name: XSPI1 (PSRAM), group: xspi1, c6_gpio: null, n6: "XSPI1: CLK, NCLK, NCS, DQS0, DQS1, IO0-IO15", dir: bidir, domain: CTX, note: "U2 APS256XX, 1.8 V, up to 200 MHz DDR (UM3300 DK: XSPIM_P1)"}
+  - {name: XSPI2 (NOR), group: xspi2, c6_gpio: null, n6: "XSPI2: CLK, NCS, DQS, IO0-IO7, NOR_RESET", dir: bidir, domain: CTX, note: "U3 MX66UW1G45G, 1.8 V, 200 MHz (UM3300 DK: XSPIM_P2); N6 boots from here"}
+  - {name: AUDIO_I2S, group: audio, c6_gpio: null, n6: "SAIx: SCK, FS, SD", dir: n6_out, domain: CTX, note: "to U11 BCLK/LRCLK/DIN"}
+  - {name: AUDIO_SD_MODE, group: audio, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX}
+  - {name: AUDIO_EN, group: power, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX, note: "U25 ON, pull-down"}
+  - {name: MIC_PDM_CLK/DATA, group: audio, c6_gpio: null, n6: "MDF/ADF CCK + SDI", dir: bidir, domain: CTX, note: "2 mics on one data line (L/R select)"}
+  - {name: IR_EN, group: power, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX, note: "U24 ON, pull-down"}
+  - {name: IR_LED_PWM, group: ir, c6_gpio: null, n6: TIMx_CHy, dir: n6_out, domain: CTX, note: "Q2 gate, pull-down"}
+  - {name: IRCUT_A/B, group: ir, c6_gpio: null, n6: GPIO x2, dir: n6_out, domain: CTX, note: "U6 IN1/IN2"}
+  - {name: PWR_VCORE_DVFS, group: power, c6_gpio: null, n6: GPIO, dir: n6_out, domain: CTX, note: "Q1 gate: 0 = 0.81 V, 1 = 0.89 V (AN6000)"}
+  - {name: SWD/TRACE, group: debug, c6_gpio: null, n6: "SWDIO, SWCLK, SWO, NRST", dir: bidir, domain: CTX, note: "J3"}
+  - {name: N6_BOOT0/1, group: debug, c6_gpio: null, n6: "BOOT0, BOOT1", dir: in_to_n6, domain: CTX, note: "SW3; pin names TO-VERIFY[TV-14]"}
+
+# Test points (TP1-TP13 are rail TPs in rails.yaml; signals below)
+test_points:
+  TP14: CTX_EN
+  TP15: CTX_CORE_EN
+  TP16: N6_PWR_ON_SENSE
+  TP17: VDDCORE_EN
+  TP18: PIR_OUT
+  TP19: BUTTON_N
+  TP20: PMIC_INT_N
+  TP21: I2C_AON_SDA
+  TP22: I2C_AON_SCL
+  TP23: HOSTED_SCLK
+  TP24: HOSTED_CS
+  TP25: HOSTED_HANDSHAKE
+  TP26: HOSTED_DATA_READY
+  TP27: CTRL_UART_C6_TX
+  TP28: CTRL_UART_C6_RX
+  TP29: CAM_I2C_SCL/SDA
+  TP30: CAM_PWR_EN
+  TP31: IR_LED_PWM
+  TP32: N6_MARKER_0 (spare N6 GPIO for PPK2 logic port)
+  TP33: N6_MARKER_1
+  TP34: GND
+  TP35: GND
+  TP36: GND
+  TP37: GND
+  TP38: AUDIO_I2S
+  TP39: PWR_VCORE_DVFS
+  TP40: NTC

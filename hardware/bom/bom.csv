@@ -1,0 +1,54 @@
+refdes,block,description,manufacturer,mpn_primary,mpn_fallback,package,qty,unit_price_usd_q5,price_source,dnp,notes
+U1,vision_soc,Vision MCU M55 + Neural-ART NPU,STMicroelectronics,STM32N657X0H3Q,STM32N657B0H3Q,VFBGA-264 14x14 mm,1,16.00,estimate,N,Package from https://www.digikey.com/en/products/detail/stmicroelectronics/STM32N657X0H3Q/25675974; fallback pin-compatibility TO-VERIFY[TV-30]; price TO-VERIFY[TV-25]
+U2,memory,256 Mb hexadeca/octal PSRAM 1.8 V on XSPI1,AP Memory,APS256XXN-OBR-BG,APS256XXN-OBR-WA,BGA-24,1,4.50,https://www.lcsc.com/product-detail/C42963059.html,N,LCSC lists the WLCSP (-WA) from $3.80 at volume; qty-5 BGA price higher; DK uses a 256 Mbit 1.8 V 200 MHz DDR PSRAM on XSPIM_P1 (UM3300)
+U3,memory,1 Gb octal NOR 1.8 V on XSPI2 (A/B fw + A/B models + gallery),Macronix,MX66UW1G45GXDI00,MX25UW51245GXDI00,TFBGA-24 5x5 mm,1,9.00,estimate,N,Package from DigiKey listing; DK uses 1 Gbit 1.8 V octal NOR on XSPIM_P2 (UM3300); fallback 512 Mb part TO-VERIFY[TV-30]
+U4,radio_aon,Always-on MCU + Wi-Fi 6 / BLE 5 module (brainstem),Espressif,ESP32-C6-MINI-1-N4,ESP32-C6-MINI-1U-N4,SMD module 53-pad,1,3.50,estimate,N,Fallback is the u.FL antenna variant for a metal/sealed enclosure; pinout from module datasheet v1.0
+U5,camera,1.5 MP RGB-IR global shutter CSI-2 sensor,STMicroelectronics,VD66GY,B-CAMS-IMX,CSP,1,12.00,estimate,N,Availability at qty 5 TO-VERIFY[TV-26]; fallback = DK camera module (IMX335) on J7 FFC; 2 lanes x 800 Mbps at full res (VD66GY datasheet)
+J7,camera,22-pin 0.5 mm FFC connector for CSI-2 camera module (fallback path),Hirose,FH12-22S-0.5SH(55),none,SMD R/A,1,0.80,estimate,N,Pinout must match MB1854 module if the fallback is used: TO-VERIFY[TV-26]
+M1,optics,M12 lens ~100 deg HFOV + holder,generic,GENERIC-M12-HFOV100,none,M12 holder,1,6.00,estimate,N,Plan 4.2 range $6-10
+M2,optics,Switchable IR-cut filter for M12 holder,generic,GENERIC-M12-IRCUT,none,module,1,4.00,estimate,N,Driven by U6 (bistable coil)
+U6,optics,IR-cut coil H-bridge driver,Texas Instruments,DRV8837DSGR,none,WSON-8,1,0.90,estimate,N,Ordering code TO-VERIFY[TV-30]
+D1-D4,ir,850 nm IR LED,ams OSRAM,SFH 4715AS,VSMY98545,SMD,4,1.20,estimate,N,Duty-cycled only while the sensor integrates; MPNs TO-VERIFY[TV-30]
+Q2,ir,IR LED constant-current low-side MOSFET,Alpha & Omega,AO3400A,DMN3404L,SOT-23,1,0.15,estimate,N,With sense resistor + N6 PWM (IR_LED_PWM)
+U8,wake,Low-current PIR (1 uA),Panasonic,EKMB1101111,EKMB1201111,THT lens module,1,15.00,estimate,N,1 uA / 2 uA variants from Panasonic EKMB flyer; plan budgeted $4 for wake sensors which is too low for EKMB at qty 5
+U9,wake,60 GHz radar presence sensor (optional),Infineon,BGT60LTR11AIP,none,AIP module,1,8.00,estimate,Y,DNP by default (scope); supply and current TO-VERIFY[TV-27]
+U10,sensors,Ambient light sensor (day/night),Vishay,VEML7700-TT,OPT3001DNPR,SMD 4-pin,1,1.10,estimate,N,I2C 0x10 (VEML7700 datasheet); OPT3001 fallback changes the address (see spec/i2c_map.yaml alternates)
+MK1-MK2,audio,PDM MEMS microphone,Infineon,IM69D130V01,SPH0641LU4H-1,LGA,2,1.50,estimate,N,Separate analog ground island per layout rules; MPNs TO-VERIFY[TV-30]
+U11,audio,I2S class-D mono amplifier,Analog Devices,MAX98357AETE+T,MAX98357BETE+T,TQFN-16,1,2.50,estimate,N,Fed from SYS_AUDIO via U25; supply range TO-VERIFY[TV-28]
+LS1,audio,Speaker 8 ohm 1 W ~20 mm,generic,GENERIC-SPK-8R-1W-20MM,none,wired,1,1.50,estimate,N,
+U12,power,1S buck-boost charger with MPPT + USB-C input,Texas Instruments,BQ25798RQMR,BQ25620RYKR,VQFN-HR-29 4x4 mm,1,2.80,https://www.lcsc.com/product-detail/C2876593.html,N,LCSC lists from $1.75 at volume; I2C 0x6B; fallback loses solar MPPT and its ordering code is TO-VERIFY[TV-30]; battery-only Iq up to 24 uA TO-VERIFY[TV-03]
+U13,power,Fuel gauge ModelGauge 1S,Analog Devices,MAX17048G+T10,BQ27441DRZR-G1A,TDFN-8 2x2 mm,1,2.20,estimate,N,I2C 0x36; hibernate 3 uA typ; fallback address TO-VERIFY[TV-30]
+U14,power,3V3_AON buck 60 nA Iq,Texas Instruments,TPS62840DLCR,TPS63900DSKR,VSON-8 1.5x2 mm,1,1.20,estimate,N,Fallback buck-boost keeps 3.3 V when VBAT < ~3.4 V (75 nA Iq); VSET for 3.3 V TO-VERIFY[TV-18]
+U15,power,VDDCORE 0.81/0.89 V 3 A buck with active discharge,Texas Instruments,TPS62088YFPR,none,WCSP-6,1,1.00,estimate,N,Must meet AN6000 VRM spec TO-VERIFY[TV-19]; DVFS via Q1 on the feedback divider
+Q1,power,VDDCORE DVFS feedback-divider switch MOSFET,Diodes Inc,DMG1012T,none,SOT-523,1,0.10,estimate,N,AN6000 asks IDSS << 2 uA; VGS(th) < 1.8 V; Crss < 20 pF; check DMG1012T against these TO-VERIFY[TV-19]
+U16,power,3V3_CTX buck-boost 2 A (N6 VDD/VDDIO + camera LDO input),Texas Instruments,TPS63802DLAR,TPS63900DSKR,VSON-HR-10 3x2 mm,1,2.00,estimate,N,Buck-boost because VBAT drops below 3.3 V; fallback only if 3V3_CTX load < 400 mA
+U17,power,1V8_CTX buck (PSRAM/NOR/XSPI VDDIO/camera VDDIO),Texas Instruments,TPS62088YFPR,TPS62840DLCR,WCSP-6,1,1.00,estimate,N,Fallback limited to 750 mA
+U18,power,VDDA1V8 low-noise LDO 1.8 V,Texas Instruments,TLV75518PDBVR,TLV73318PDBVR,SOT-23-5,1,0.25,estimate,N,AN6000: LDO recommended; >= 50 mA; EN + discharge
+U19,power,VDDA1V8_AON (cortex side) LDO 1.8 V,Texas Instruments,TLV75518PDBVR,TLV73318PDBVR,SOT-23-5,1,0.25,estimate,N,AN6000: >= 10 mA; up first with VDD
+U20,camera,Camera VANA 2.8 V LDO,Texas Instruments,TLV75528PDBVR,none,SOT-23-5,1,0.25,estimate,N,VD66GY VANA 2.8 V (datasheet); ordering code TO-VERIFY[TV-30]
+U21,camera,Camera VCORE 1.15 V LDO (adjustable),Texas Instruments,TLV75801PDBVR,none,SOT-23-5,1,0.25,estimate,N,VD66GY VCORE 1.15 V (datasheet); ordering code TO-VERIFY[TV-30]
+U23,power,SYS_CTX load switch (cortex domain gate),Texas Instruments,TPS22917DBVR,TPS22918DBVR,SOT-23-6,1,0.60,estimate,N,2 A; 10 nA off; QOD tied to output for fast discharge; CT sets ~1 ms ramp
+U24,power,SYS_IR load switch (IR LED rail),Texas Instruments,TPS22917DBVR,TPS22918DBVR,SOT-23-6,1,0.60,estimate,N,
+U25,power,SYS_AUDIO load switch (amp rail),Texas Instruments,TPS22917DBVR,TPS22918DBVR,SOT-23-6,1,0.60,estimate,N,
+U26,power,VDDCORE_EN = PWR_ON AND CTX_CORE_EN,Texas Instruments,SN74LVC1G08DCKR,SN74AUP1G08DCKR,SC-70-5,1,0.15,estimate,N,Lets the C6 force VDDCORE off before VDD (AN6000 power-down order) if the N6 hangs; powered from 3V3_AON
+U27,security,Secure element for device identity,Microchip,ATECC608B-MAHDA-S,none,SOIC-8,1,0.90,estimate,N,Use the MAHDA (0x60) variant: a TFLXTLS variant may sit at 0x36 and collide with U13 TO-VERIFY[TV-10]
+J1,power,USB-C receptacle (power + C6 USB-Serial-JTAG),GCT,USB4105-GF-A,TYPE-C-31-M-12,SMD,1,0.80,estimate,N,
+U28,power,USB D+/D- ESD,Texas Instruments,TPD2E2U06DCKR,none,SC-70,1,0.30,estimate,N,Ordering code TO-VERIFY[TV-30]
+D7,power,VBUS TVS,Littelfuse,SMF22A,none,SOD-123F,1,0.20,estimate,N,Rating vs BQ25798 VBUS abs max TO-VERIFY[TV-30]
+J2,power,Battery connector 2-pin + NTC,JST,S3B-PH-SM4-TB,S3B-PH-K-S,SMD 3-pin,1,0.25,estimate,N,BAT+ / BAT- / NTC
+BT1,power,1S Li-ion 5000 mAh pouch with PCM and 10k NTC,generic,GENERIC-LIPO-1S-5000-NTC,2x INR18650-35E parallel,pouch,1,10.00,estimate,N,Plan 4.2 range $8-12; PCM current TO-VERIFY[TV-31]
+J3,debug,N6 SWD/trace Tag-Connect footprint,Tag-Connect,TC2050-IDC-NL footprint,FTSH-105-01-L-DV,footprint,1,0.00,estimate,N,Footprint only; cable reused
+J4,debug,C6 UART0 + EN + GPIO9 header 1x6 2.54 mm,generic,GENERIC-HDR-1X6-2.54,none,THT,1,0.10,estimate,N,Also USB-Serial-JTAG on J1
+J5,debug,N6 control UART tap 1x3 2.54 mm,generic,GENERIC-HDR-1X3-2.54,none,THT,1,0.05,estimate,N,
+SW1,ui,Doorbell button with ring light,generic,GENERIC-16MM-ILLUM-BUTTON,none,panel,1,2.00,estimate,N,Wake on C6 GPIO2
+SW2,debug,C6 BOOT (GPIO9 strap) tactile,generic,GENERIC-TACT-5.1MM,none,SMD,1,0.10,estimate,N,
+SW3,debug,N6 boot-mode DIP switch,generic,GENERIC-DIP-2,none,SMD,1,0.30,estimate,N,N6 boot pin names/levels TO-VERIFY[TV-14]
+Y1,radio_aon,32.768 kHz crystal for C6 (GPIO0/1),Abracon,ABS07-32.768KHZ-T,FC-135 32.7680KA-A3,SMD 3.2x1.5 mm,1,0.40,estimate,N,Need TO-VERIFY[TV-17]; if dropped GPIO0/1 become free
+D5,ui,Status LED 0603,generic,GENERIC-LED-0603,none,0603,1,0.05,estimate,N,
+L1-L6,power,Power inductors per regulator datasheet,generic,GENERIC-INDUCTOR,none,SMD,6,0.30,estimate,N,U12; U14; U15; U16; U17 (+1 spare footprint)
+C1-C160,passives,MLCC decoupling and bulk,generic,GENERIC-MLCC,none,0201/0402/0603/0805,160,0.02,estimate,N,N6 BGA decoupling per AN5967 TO-VERIFY[TV-12]
+R1-R90,passives,Resistors (pull-ups; dividers; sense; series terminations),generic,GENERIC-RES,none,0201/0402,90,0.01,estimate,N,
+FB1-FB4,passives,Ferrite beads (VDDA1V8; mic supplies; camera VANA),generic,GENERIC-FERRITE,none,0402,4,0.05,estimate,N,
+JP1-JP12,power,Per-rail current-measurement shunt jumpers (0 ohm + 2-pin header footprint),generic,GENERIC-0R-0603,none,0603 + 2.54 mm,12,0.05,estimate,N,Plan 4.2: non-negotiable for G1/G2; see spec/rails.yaml
+TP1-TP40,debug,Test points,generic,PAD-TESTPOINT,none,pad,40,0.00,estimate,N,See spec/interfaces.md test-point list
+PCB1,pcb,6-layer ~60x60 mm ENIG impedance-controlled PCB (per board of a 5-board order),generic,FAB-6L-60X60-ENIG,4-layer (only if N6 escape routing allows),PCB,1,15.00,estimate,N,Plan 4.2 range $8-15; stackup TO-VERIFY[TV-32]

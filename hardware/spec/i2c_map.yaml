@@ -1,0 +1,45 @@
+# I2C buses and 7-bit addresses (machine-readable; tests/test_i2c_map.py checks for collisions).
+# address: int (7-bit) or null when unknown (then `verify` must name a TO-VERIFY ID).
+buses:
+  I2C_AON:
+    rev: A
+    master: "ESP32-C6 LP_I2C (GPIO6 SDA, GPIO7 SCL)"
+    pullup_rail: 3V3_AON
+    speed_hz: 400000
+    devices:
+      - {ref: U13, part: MAX17048, address: 0x36, src: "https://www.mouser.com/datasheet/2/609/MAX17048_MAX17049-3126952.pdf"}
+      - {ref: U12, part: BQ25798, address: 0x6B, src: "https://ti.com/document-viewer/BQ25798/datasheet/GUID-EE777D33-DDB8-45B0-A4D7-F83AAF3D2C7B"}
+      - {ref: U10, part: VEML7700, address: 0x10, src: "https://www.vishay.com/docs/84286/veml7700.pdf"}
+      - {ref: U27, part: ATECC608B-MAHDA, address: 0x60, src: "https://gist.github.com/jj1bdx/ad2dedcbacb9198bd4e1667008e9dbe5", verify: TV-10, note: "Source table is for ATECC608A-MAHDA; 608B assumed same"}
+  I2C_CAM:
+    rev: A
+    master: "STM32N6 I2Cx (instance and balls TO-VERIFY[TV-14])"
+    pullup_rail: 3V3_CTX
+    speed_hz: 400000
+    devices:
+      - {ref: U5, part: VD66GY, address: 0x10, src: "https://file.icallin.com/resource/en/datasheet/vd66gy.pdf", note: "Datasheet gives 0x20 including R/W bit; OTP/firmware can change it"}
+  DK_I2C1:
+    rev: "0"
+    master: "STM32N6570-DK I2C1: PH9 SCL / PC1 SDA (UM3300), shared by camera connector CN14 and Arduino D15/D14"
+    pullup_rail: DK 3V3
+    speed_hz: 400000
+    devices:
+      - {ref: MB1854, part: IMX335, address: 0x1A, src: "https://android-kvm.googlesource.com/linux/+/00568b8a6364e15009b345b462e927e0b9fc2bb9/Documentation/devicetree/bindings/media/i2c/sony%2Cimx335.yaml"}
+      - {ref: MB1854, part: "ToF sensor on camera module", address: null, verify: TV-11}
+      - {ref: MB1854, part: "IMU on camera module", address: null, verify: TV-11}
+  DEVKIT_I2C_AON:
+    rev: "0"
+    master: "ESP32-C6-DevKitC-1 GPIO6 SDA (J1-5) / GPIO7 SCL (J1-6)"
+    pullup_rail: DevKitC 3V3
+    speed_hz: 100000
+    devices:
+      - {ref: breakout, part: MAX17048, address: 0x36, src: "https://www.mouser.com/datasheet/2/609/MAX17048_MAX17049-3126952.pdf"}
+      - {ref: breakout, part: VEML7700, address: 0x10, src: "https://www.vishay.com/docs/84286/veml7700.pdf"}
+
+# Parts we might swap in. The test checks each alternate against the bus it would join.
+alternates:
+  - {part: ATECC608B-TFLXTLS, bus: I2C_AON, replaces: U27, address: 0x36, verify: TV-10, note: "608A-TFLXTLS default; collides with MAX17048"}
+  - {part: ATECC608B-TNGTLS, bus: I2C_AON, replaces: U27, address: 0x35, verify: TV-10}
+  - {part: OPT3001 (ADDR=GND), bus: I2C_AON, replaces: U10, address: 0x44, verify: TV-30}
+  - {part: IMX335 (B-CAMS-IMX fallback), bus: I2C_CAM, replaces: U5, address: 0x1A}
+  - {part: VEML7700 moved to camera bus, bus: I2C_CAM, replaces: null, address: 0x10, note: "Would collide with VD66GY: keep it on I2C_AON"}

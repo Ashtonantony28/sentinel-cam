@@ -1,0 +1,110 @@
+# Sentinel power constants: SINGLE SOURCE OF TRUTH (docs/INTERFACES.md section 6).
+# Consumers: hardware/power_model (battery life), ml/ (energy per inference via npu.npu_pj_per_mac).
+#
+# Every constant has:
+#   value       nominal value used for point estimates
+#   low, high   uncertainty range (Monte-Carlo samples triangular(low, value, high))
+#   unit        one of the units in sentinel_power/units.py (converted to SI on load)
+#   status      datasheet | third_party_measurement | derived | estimate | design_choice | spec | measured
+#   src         list of source IDs (see `sources:` at the bottom). Required unless status is
+#               estimate or design_choice.
+#   verify      optional TO-VERIFY ID from hardware/spec/to_verify.yaml
+#   note        free text
+# Machine-readable flat names are "<group>.<name>", e.g. "npu.npu_pj_per_mac".
+schema_version: 1
+
+battery:
+  capacity:        {value: 5000, low: 4750, high: 5000, unit: mAh, status: spec, src: [PLAN], note: "1S 5000 mAh pouch (plan 4.2). Low end = typical cell shipping at 95% of rated.", verify: TV-08}
+  nominal_v:       {value: 3.7, low: 3.6, high: 3.7, unit: V, status: spec, src: [PLAN, SAMSUNG35E], note: "Plan uses 3.7 V; Samsung 35E datasheet nominal is 3.60 V."}
+  usable_fraction: {value: 0.92, low: 0.85, high: 0.97, unit: fraction, status: estimate, note: "Energy above the effective cutoff. The always-on rail is a buck (TPS62840) and the C6 needs >= 3.0 V, so ~3.1-3.2 V under TX peaks is the practical cutoff, not 2.5 V.", verify: TV-18}
+  self_discharge:  {value: 2.0, low: 1.0, high: 3.0, unit: pct_per_month, status: third_party_measurement, src: [BU_SELF], note: "BU: 1-2 %/month after the first 24 h at room temperature; high end allows for warm periods. Doubles per +10 C (BU), applied in the model."}
+  self_discharge_soc_factor: {value: 0.5, low: 0.4, high: 0.7, unit: fraction, status: estimate, note: "Self-discharge is a % of stored charge; with a linear draw-down the average stored charge is ~half of full."}
+  protection_ic:   {value: 3.0, low: 1.0, high: 6.0, unit: uA, status: estimate, note: "Pack PCM (DW01-class) drain. BU quotes 3 %/month for consumer packs, which would be ~200 uA here and is not credible for a modern PCM.", verify: TV-31}
+  calendar_fade:   {value: 3.0, low: 2.0, high: 6.0, unit: pct_per_year, status: estimate, note: "Capacity fade at low C-rate, mostly calendar ageing at partial SOC.", verify: TV-08}
+  deploy_temp:     {value: 10.0, low: -5.0, high: 25.0, unit: degC, status: estimate, note: "Annual-mean effective cell temperature at an outdoor doorstep in southern Ontario. Winter months are far colder; see README."}
+
+# Low-rate capacity derating vs cell temperature (fraction of 25 C capacity). Linear interpolation, clamped.
+tables:
+  temp_derating:
+    status: estimate
+    verify: TV-08
+    note: "Generic Li-ion at <C/100 average rate. Low-rate loads lose much less than the 0.2C curves in cell datasheets."
+    points: [[-20, 0.60], [-10, 0.75], [0, 0.86], [10, 0.95], [25, 1.00], [45, 1.00]]
+
+rails:
+  aon_v:               {value: 3.3, low: 3.3, high: 3.3, unit: V, status: design_choice, note: "Always-on rail 3V3_AON (TPS62840)."}
+  aon_efficiency:      {value: 0.85, low: 0.75, high: 0.90, unit: fraction, status: estimate, src: [TPS62840], note: "TI page: 80 % at 1 uA load (3.6 V in, 1.8 V out). At ~0.2-0.6 mA and 3.7->3.3 V it should be higher; 100% mode near end of discharge.", verify: TV-18}
+  tps62840_iq:         {value: 60, low: 60, high: 120, unit: nA, status: datasheet, src: [TPS62840], note: "60 nA typ operating Iq; 120 nA in 100 % duty-cycle mode."}
+  load_switch_off:     {value: 10, low: 10, high: 50, unit: nA, status: datasheet, src: [TPS22917], note: "TPS22917 shutdown current 10 nA typ; high end allows for leakage at temperature."}
+  n_load_switches:     {value: 3, low: 3, high: 3, unit: count, status: design_choice, note: "SYS_CTX, IR LED, audio (spec/rails.yaml)."}
+  cortex_efficiency:   {value: 0.85, low: 0.78, high: 0.90, unit: fraction, status: estimate, note: "Weighted efficiency of TPS62088 (VDDCORE), TPS63802 (3V3_CTX), 1V8 buck and LDOs at cortex load."}
+
+aon_loads:
+  c6_light_sleep:      {value: 180, low: 150, high: 250, unit: uA, status: datasheet, src: [C6_MINI_DS, QOITECH], note: "Module datasheet light-sleep 180 uA typ (CPU+radio down, clocks off). Qoitech measured 220 uA on a XIAO C6. This is the floor between TWT service periods."}
+  c6_deep_sleep:       {value: 7, low: 7, high: 20, unit: uA, status: datasheet, src: [C6_DS, C6_MINI_DS, QOITECH], note: "7 uA typ (RTC timer + LP memory on). Qoitech measured 16.9 uA on a board."}
+  c6_lp_core_overhead: {value: 3, low: 1, high: 10, unit: uA, status: estimate, note: "LP core running a GPIO-wake + occasional I2C poll program in deep sleep."}
+  c6_twt_wake_energy:  {value: 27.9, low: 10, high: 60, unit: mJ, status: derived, src: [HACKADAY_TWT, C6_MINI_DS], note: "(708 uA measured avg - 180 uA floor) x 3.3 V x 16 s TWT interval. Single third-party measurement.", verify: TV-02}
+  twt_interval:        {value: 30, low: 16, high: 120, unit: s, status: design_choice, note: "iTWT wake interval negotiated with the AP. Uplink is unaffected (STA can transmit any time); downlink latency (feedback/OTA notices) = interval. AP may refuse long intervals.", verify: TV-01}
+  pir:                 {value: 1, low: 1, high: 2, unit: uA, status: datasheet, src: [EKMB], note: "EKMB1101111 (1 uA variant). High = 2 uA variant (fallback MPN).", verify: TV-29}
+  light_sensor:        {value: 2, low: 0.5, high: 8, unit: uA, status: datasheet, src: [VEML7700], note: "VEML7700 PSM mode 4 = 2 uA; shutdown 0.5 uA; PSM mode 1 = 8 uA."}
+  secure_element:      {value: 0.15, low: 0.1, high: 1.0, unit: uA, status: estimate, note: "ATECC608B sleep current (not verified).", verify: TV-30}
+  radar:               {value: 0, low: 0, high: 0, unit: uA, status: design_choice, note: "BGT60LTR11 is DNP on the default build. Use scenario radar_populated to add it.", verify: TV-27}
+  radar_populated:     {value: 300, low: 100, high: 800, unit: uA, status: estimate, note: "Only used when a scenario sets radar_populated: true.", verify: TV-27}
+
+battery_loads:
+  charger_iq:          {value: 20, low: 15, high: 24, unit: uA, status: third_party_measurement, src: [BQ25798_E2E], note: "TI E2E: 'up to 24 uA' battery-only, ADC disabled, production tested. Typical not verified. Largest non-radio standby drain.", verify: TV-03}
+  gauge:               {value: 3, low: 3, high: 5, unit: uA, status: datasheet, src: [MAX17048], note: "MAX17048 hibernate 3 uA typ / 5 uA max (comparator disabled); active 23 uA typ but it auto-hibernates."}
+
+cortex:
+  boot_power:          {value: 0.35, low: 0.20, high: 0.60, unit: W, status: estimate, note: "N6 + NOR + PSRAM during ROM/FSBL/app init, camera still off.", verify: TV-04}
+  boot_time:           {value: 0.15, low: 0.08, high: 0.50, unit: s, status: spec, src: [PLAN], note: "Plan target < 150 ms to first frame; unmeasured.", verify: TV-05}
+  sensor_start_power:  {value: 0.55, low: 0.35, high: 0.90, unit: W, status: estimate, note: "N6 + sensor streaming while AE/AWB converge. VD66GY alone streams at 120-145 mW (datasheet).", verify: TV-04}
+  sensor_start_time:   {value: 0.6, low: 0.3, high: 1.5, unit: s, status: estimate, verify: TV-04}
+  pipeline_power:      {value: 0.85, low: 0.60, high: 1.30, unit: W, status: estimate, note: "N6 M55 + ISP + sensor + PSRAM traffic + NPU idle/clock power, EXCLUDING the per-MAC NPU compute energy (the model adds that from npu.*). AN6000: VDDCORE alone can peak at ~1.5 W worst case.", src: [AN6000], verify: TV-04}
+  person_pipeline_time: {value: 0.6, low: 0.3, high: 1.5, unit: s, status: estimate, note: "4 frames person detect + face detect + embed + match + policy.", verify: TV-04}
+  reject_pipeline_time: {value: 0.3, low: 0.15, high: 0.8, unit: s, status: estimate, note: "Stage-1 reject after 4 frames (INTERFACES 2: >=2 of first 4 frames).", verify: TV-04}
+  encode_power:        {value: 0.80, low: 0.60, high: 1.20, unit: W, status: estimate, note: "Sensor + ISP + H.264 encoder + PSRAM while recording the clip.", verify: TV-04}
+  clip_time:           {value: 8, low: 5, high: 10, unit: s, status: spec, src: [PLAN], note: "Plan 3.2: 5-10 s clip."}
+  clip_size:           {value: 1.0e6, low: 0.5e6, high: 2.5e6, unit: bytes, status: estimate, note: "~1 Mbit/s H.264 x 8 s + thumbnail."}
+  upload_power:        {value: 0.40, low: 0.30, high: 0.60, unit: W, status: estimate, note: "N6 idle-ish while streaming the clip over the hosted SPI link.", verify: TV-04}
+  hosted_throughput:   {value: 8.0e6, low: 3.0e6, high: 15.0e6, unit: bit_per_s, status: estimate, verify: TV-06}
+  shutdown_power:      {value: 0.30, low: 0.20, high: 0.50, unit: W, status: estimate}
+  shutdown_time:       {value: 0.05, low: 0.02, high: 0.20, unit: s, status: estimate, note: "Flush logs, enter Standby, VDDCORE discharge, C6 opens SYS_CTX."}
+  ir_led_power:        {value: 1.0, low: 0.5, high: 2.0, unit: W, status: estimate, note: "4x 850 nm LEDs at constant current, on only while the sensor integrates at night."}
+  night_fraction:      {value: 0.35, low: 0.2, high: 0.5, unit: fraction, status: estimate, note: "Fraction of events that need IR."}
+
+npu:
+  npu_pj_per_mac:      {value: 3.6, low: 0.67, high: 16.0, unit: pJ_per_MAC, status: derived, src: [ARXIV_N6, MLPERF_TINY, NEURALART], note: "Marginal core-domain energy per int8 MAC. Fit E = E0 + k*MACs to arXiv:2505.15622 L-Perf results (AD autoencoder 0.154 mJ @ 264,192 MAC; ResNet-8 0.198 mJ @ 12.5 MMAC) -> k = 3.6 pJ/MAC, E0 = 0.153 mJ; DS-CNN (0.157 mJ) is consistent. Low = ST marketing 3 TOPS/W = 0.67 pJ/MAC (NPU only). High = ResNet-8 total energy / MACs (16 pJ/MAC, all overhead attributed to MACs). Excludes sensor, PSRAM/NOR, I/O rails.", verify: TV-09}
+  npu_overhead_per_inference: {value: 0.153, low: 0.10, high: 0.25, unit: mJ, status: derived, src: [ARXIV_N6], note: "E0 from the same fit: per-inference fixed cost (pre/post, runtime, epoch setup) in the core domain.", verify: TV-09}
+  npu_peak_gops:       {value: 600, low: 600, high: 600, unit: GOPS, status: datasheet, src: [NEURALART], note: "ST: 600 GOPS, NPU at 1 GHz."}
+  person_det_gmac:     {value: 0.7, low: 0.3, high: 1.5, unit: GMAC, status: estimate, note: "Per frame at 256x256 (YOLOv8n-class). WS1 should overwrite with its exported model's MAC count."}
+  face_stage_gmac:     {value: 0.25, low: 0.1, high: 0.5, unit: GMAC, status: estimate, note: "Face detect + MobileFaceNet embed per person event."}
+  frames_per_event:    {value: 4, low: 4, high: 8, unit: count, status: spec, src: [INTERFACES], note: "Person present = >=2 of first 4 frames."}
+
+radio:
+  c6_awake_current:    {value: 28, low: 20, high: 40, unit: mA, status: datasheet, src: [C6_MINI_DS], note: "Modem-sleep, 160 MHz CPU idle, clocks enabled: 28 mA typ. C6 stays awake while the cortex is on (hosted link)."}
+  c6_tx_avg_current:   {value: 200, low: 120, high: 300, unit: mA, status: estimate, src: [C6_MINI_DS], note: "Average during an upload burst. Datasheet peaks: 802.11b 382 mA, 802.11ax MCS9 251 mA, RX 78 mA."}
+  publish_time:        {value: 0.15, low: 0.05, high: 0.5, unit: s, status: estimate, note: "One MQTT QoS1 publish + PUBACK on an associated link."}
+  reconnect_time:      {value: 2.0, low: 1.0, high: 4.0, unit: s, status: estimate, src: [PLAN], note: "Radio-off fallback: scan (cached channel) + assoc + DHCP/static + MQTT/TLS resume. Plan says +1-2 s latency.", verify: TV-07}
+  reconnect_current:   {value: 110, low: 80, high: 160, unit: mA, status: estimate, verify: TV-07}
+
+sources:
+  PLAN:          "docs/PLAN.md (this repo), sections 3-4"
+  INTERFACES:    "docs/INTERFACES.md (this repo), section 2"
+  AN6000:        "https://www.st.com/resource/en/application_note/an6000-how-to-build-the-discrete-power-supply-for-stm32n6-mcus-stmicroelectronics.pdf"
+  UM3300:        "https://www.st.com.cn/resource/en/user_manual/um3300-discovery-kit-with-stm32n657x0-mcu-stmicroelectronics.pdf"
+  NEURALART:     "https://www.st.com/content/dam/st-developer-zone/st-edge-ai-suite/edge-ai-explained/pdf/presentation-ST-neural-art-accelerator-overview.pdf"
+  ARXIV_N6:      "https://arxiv.org/pdf/2505.15622"
+  MLPERF_TINY:   "https://ar5iv.arxiv.org/html/2106.07597"
+  C6_DS:         "https://documentation.espressif.com/esp32-c6_datasheet_en.pdf"
+  C6_MINI_DS:    "https://files.waveshare.com/wiki/ESP32-C6-Pico/ESP32-C6-MINI-1_Datasheet.pdf (mirror of Espressif ESP32-C6-MINI-1 datasheet v1.0)"
+  QOITECH:       "https://www.qoitech.com/?p=19961"
+  HACKADAY_TWT:  "https://hackaday.io/project/191398/log/223940"
+  TPS62840:      "https://www.ti.com/product/TPS62840"
+  TPS22917:      "https://www.ti.com/product/TPS22917"
+  MAX17048:      "https://www.mouser.com/datasheet/2/609/MAX17048_MAX17049-3126952.pdf"
+  BQ25798_E2E:   "https://e2e.ti.com/support/power-management-group/power-management/f/power-management-forum/1508998/bq25798-check-power-consumption-at-battery-only"
+  EKMB:          "https://scdls.github.io/data/fl_61804_en_pir_motionsensors.pdf"
+  VEML7700:      "https://www.vishay.com/docs/84286/veml7700.pdf"
+  BU_SELF:       "https://batteryuniversity.com/article/elevating-self-discharge"
+  SAMSUNG35E:    "https://static.rapidonline.com/pdf/10-5181_v1.pdf"

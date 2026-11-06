@@ -1,0 +1,1009 @@
+{
+ "plan": {
+  "standby": 0.0015,
+  "person_inference": 0.00034722222222222224,
+  "clip": 0.0005555555555555556,
+  "false_wakes": 0.0002314814814814815,
+  "self_discharge_and_leakage": 0.0003,
+  "total": 0.0029342592592592593,
+  "life_hours": 6304.828021457873,
+  "life_months": 8.630839180640482
+ },
+ "scenarios": {
+  "plan_mix_twt": {
+   "description": "Plan 4.4 mix: 10 person events/day (4 unknown -> clip), 20 false wakes/day, Wi-Fi associated (TWT).",
+   "mode": "twt",
+   "nominal_power_w": {
+    "standby.c6": 0.001792941176470588,
+    "standby.sensors": 1.2229411764705882e-05,
+    "standby.regulators_switches": 3.330000000000001e-07,
+    "standby.charger": 7.4e-05,
+    "standby.gauge": 1.11e-05,
+    "standby.pack_protection": 1.11e-05,
+    "event.person_known": 0.00012293774509803922,
+    "clip.person_known": 0.0,
+    "event.person_unknown": 8.195849673202615e-05,
+    "clip.person_unknown": 0.0005762091503267974,
+    "event.false_wake": 0.00030816503267973853,
+    "clip.false_wake": 0.0,
+    "event.button": 0.0,
+    "clip.button": 0.0,
+    "periodic.status_publish": 3.235294117647059e-05,
+    "self_discharge": 8.953781965743416e-05,
+    "total": 0.0031128647739058
+   },
+   "nominal_standby_current_ua": 513.9739427662956,
+   "nominal_life_months": 7.047898698476064,
+   "mc": {
+    "n": 20000,
+    "mean_months": 6.520857070867106,
+    "p5_months": 4.56280544910373,
+    "p25_months": 5.61610019373236,
+    "median_months": 6.440803417904116,
+    "p75_months": 7.350914047131337,
+    "p95_months": 8.736737032275459,
+    "prob_ge_6_months": 0.6384,
+    "prob_ge_9_months": 0.03355,
+    "prob_ge_12_months": 0.00015
+   },
+   "plan_rows_w": {
+    "standby": 0.0018378565294117646,
+    "person_inference": 0.00020489624183006537,
+    "clip": 0.0005762091503267974,
+    "false_wakes": 0.00030816503267973853,
+    "self_discharge_and_leakage": 0.00018573781965743416,
+    "total": 0.0031128647739058
+   },
+   "tornado": [
+    {
+     "name": "aon_loads.twt_interval",
+     "life_at_low_h": 3945.693543964547,
+     "life_at_high_h": 6969.564085707901,
+     "swing_h": 3023.8705417433534,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "life_at_low_h": 6630.520690874868,
+     "life_at_high_h": 3675.3106618805937,
+     "swing_h": 2955.210028994274,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "rate.person_unknown (x1/2..x2)",
+     "life_at_low_h": 5751.127638777515,
+     "life_at_high_h": 4256.456027951466,
+     "swing_h": 1494.671610826049,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "rate.false_wake (x1/2..x2)",
+     "life_at_low_h": 5414.1205329702725,
+     "life_at_high_h": 4688.436721472962,
+     "swing_h": 725.6838114973107,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "life_at_low_h": 5344.507990334309,
+     "life_at_high_h": 4638.155675032315,
+     "swing_h": 706.3523153019942,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "battery.deploy_temp",
+     "life_at_low_h": 4450.680551200327,
+     "life_at_high_h": 5148.679401546365,
+     "swing_h": 697.9988503460381,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "battery.usable_fraction",
+     "life_at_low_h": 4759.947735791621,
+     "life_at_high_h": 5425.701426231951,
+     "swing_h": 665.7536904403296,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "aon_loads.c6_light_sleep",
+     "life_at_low_h": 5346.782125099856,
+     "life_at_high_h": 4738.450134775119,
+     "swing_h": 608.3319903247366,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "life_at_low_h": 5362.93464775821,
+     "life_at_high_h": 4767.240106690032,
+     "swing_h": 595.6945410681783,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "rails.aon_efficiency",
+     "life_at_low_h": 4745.63886785824,
+     "life_at_high_h": 5337.270833385492,
+     "swing_h": 591.6319655272519,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "cortex.clip_time",
+     "life_at_low_h": 5488.264504394259,
+     "life_at_high_h": 4944.419689815289,
+     "swing_h": 543.8448145789707,
+     "base_h": 5148.489999236765
+    },
+    {
+     "name": "cortex.encode_power",
+     "life_at_low_h": 5295.43181376531,
+     "life_at_high_h": 4877.784768762993,
+     "swing_h": 417.6470450023171,
+     "base_h": 5148.489999236765
+    }
+   ],
+   "spearman": [
+    {
+     "name": "aon_loads.twt_interval",
+     "spearman": 0.5354834632702086
+    },
+    {
+     "name": "rate.person_unknown",
+     "spearman": -0.44728908194622263
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "spearman": -0.3835625493814063
+    },
+    {
+     "name": "rate.false_wake",
+     "spearman": -0.27955373269188427
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "spearman": -0.16254635062786585
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.14651494986928734
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "spearman": -0.1393238953698097
+    },
+    {
+     "name": "battery.deploy_temp",
+     "spearman": 0.13795146298337865
+    },
+    {
+     "name": "aon_loads.c6_light_sleep",
+     "spearman": -0.12812378693930945
+    },
+    {
+     "name": "cortex.clip_time",
+     "spearman": -0.11199226435448065
+    },
+    {
+     "name": "rails.aon_efficiency",
+     "spearman": 0.11069758697324396
+    },
+    {
+     "name": "rate.person_known",
+     "spearman": -0.10657920973444801
+    }
+   ],
+   "event_energy_j": {
+    "person_known": {
+     "base": 1.7703035294117648,
+     "clip": 0.0
+    },
+    "person_unknown": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    },
+    "false_wake": {
+     "base": 1.3312729411764705,
+     "clip": 0.0
+    },
+    "button": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    }
+   }
+  },
+  "plan_mix_radio_off": {
+   "description": "Same mix, radio-off standby with reconnect-on-event (plan fallback). False-wake logs are batched into the periodic check-ins.",
+   "mode": "radio_off",
+   "nominal_power_w": {
+    "standby.c6": 3.88235294117647e-05,
+    "standby.sensors": 1.2229411764705882e-05,
+    "standby.regulators_switches": 3.330000000000001e-07,
+    "standby.charger": 7.4e-05,
+    "standby.gauge": 1.11e-05,
+    "standby.pack_protection": 1.11e-05,
+    "event.person_known": 0.0001822514705882353,
+    "clip.person_known": 0.0,
+    "event.person_unknown": 0.00012150098039215686,
+    "clip.person_unknown": 0.0005762091503267974,
+    "event.false_wake": 0.00028120424836601304,
+    "clip.false_wake": 0.0,
+    "event.button": 0.0,
+    "clip.button": 0.0,
+    "periodic.checkin": 4.4934640522875815e-05,
+    "self_discharge": 8.953781965743416e-05,
+    "total": 0.0014432242510299832
+   },
+   "nominal_standby_current_ua": 39.888092209856914,
+   "nominal_life_months": 15.04811741812779,
+   "mc": {
+    "n": 20000,
+    "mean_months": 11.814299714606255,
+    "p5_months": 7.761483182752157,
+    "p25_months": 9.797486241738856,
+    "median_months": 11.5041350191567,
+    "p75_months": 13.517035589145598,
+    "p95_months": 16.915965983973166,
+    "prob_ge_6_months": 0.99715,
+    "prob_ge_9_months": 0.8491,
+    "prob_ge_12_months": 0.428
+   },
+   "plan_rows_w": {
+    "standby": 9.63205816993464e-05,
+    "person_inference": 0.00030375245098039215,
+    "clip": 0.0005762091503267974,
+    "false_wakes": 0.00028120424836601304,
+    "self_discharge_and_leakage": 0.00018573781965743416,
+    "total": 0.0014432242510299832
+   },
+   "tornado": [
+    {
+     "name": "rate.person_unknown (x1/2..x2)",
+     "life_at_low_h": 14410.399784684916,
+     "life_at_high_h": 7455.955237515143,
+     "swing_h": 6954.444547169773,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "life_at_low_h": 11926.608501635155,
+     "life_at_high_h": 8901.460880457733,
+     "swing_h": 3025.1476211774225,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "rate.false_wake (x1/2..x2)",
+     "life_at_low_h": 12154.494272139626,
+     "life_at_high_h": 9228.37459886267,
+     "swing_h": 2926.119673276955,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "life_at_low_h": 12018.762256248374,
+     "life_at_high_h": 9389.394086247823,
+     "swing_h": 2629.368170000551,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.clip_time",
+     "life_at_low_h": 12667.025493128474,
+     "life_at_high_h": 10102.400561412907,
+     "swing_h": 2564.624931715567,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "rate.person_known (x1/2..x2)",
+     "life_at_low_h": 11718.651966833493,
+     "life_at_high_h": 9780.760612476006,
+     "swing_h": 1937.8913543574872,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.encode_power",
+     "life_at_low_h": 11684.948172127108,
+     "life_at_high_h": 9828.08071684813,
+     "swing_h": 1856.867455278978,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.night_fraction",
+     "life_at_low_h": 11860.600594104868,
+     "life_at_high_h": 10243.068845482729,
+     "swing_h": 1617.5317486221393,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.reject_pipeline_time",
+     "life_at_low_h": 11384.676028712274,
+     "life_at_high_h": 9860.80798539269,
+     "swing_h": 1523.868043319584,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "radio.reconnect_time",
+     "life_at_low_h": 11535.339505422466,
+     "life_at_high_h": 10047.283956191292,
+     "swing_h": 1488.0555492311742,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "cortex.person_pipeline_time",
+     "life_at_low_h": 11384.676028712274,
+     "life_at_high_h": 9963.394591776845,
+     "swing_h": 1421.2814369354292,
+     "base_h": 10992.64977394235
+    },
+    {
+     "name": "battery.usable_fraction",
+     "life_at_low_h": 10170.809039792894,
+     "life_at_high_h": 11578.240066275319,
+     "swing_h": 1407.4310264824253,
+     "base_h": 10992.64977394235
+    }
+   ],
+   "spearman": [
+    {
+     "name": "rate.person_unknown",
+     "spearman": -0.6987609895464024
+    },
+    {
+     "name": "rate.false_wake",
+     "spearman": -0.37648862869572153
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "spearman": -0.22715191410237975
+    },
+    {
+     "name": "rate.person_known",
+     "spearman": -0.21628019349520042
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "spearman": -0.2008809720177024
+    },
+    {
+     "name": "cortex.clip_time",
+     "spearman": -0.16867426180518563
+    },
+    {
+     "name": "cortex.night_fraction",
+     "spearman": -0.1284437253631093
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.11634914334437284
+    },
+    {
+     "name": "cortex.person_pipeline_time",
+     "spearman": -0.1160824856557062
+    },
+    {
+     "name": "cortex.reject_pipeline_time",
+     "spearman": -0.1155030901762577
+    },
+    {
+     "name": "cortex.encode_power",
+     "spearman": -0.1146499680886249
+    },
+    {
+     "name": "radio.reconnect_time",
+     "spearman": -0.0942315203850788
+    }
+   ],
+   "event_energy_j": {
+    "person_known": {
+     "base": 2.6244211764705883,
+     "clip": 0.0
+    },
+    "person_unknown": {
+     "base": 2.6244211764705883,
+     "clip": 12.446117647058824
+    },
+    "false_wake": {
+     "base": 1.2148023529411764,
+     "clip": 0.0
+    },
+    "button": {
+     "base": 2.6244211764705883,
+     "clip": 12.446117647058824
+    }
+   }
+  },
+  "busy_door_twt": {
+   "description": "Busy household: 25 person events (10 unknown), 40 false wakes, 2 rings/day.",
+   "mode": "twt",
+   "nominal_power_w": {
+    "standby.c6": 0.001792941176470588,
+    "standby.sensors": 1.2229411764705882e-05,
+    "standby.regulators_switches": 3.330000000000001e-07,
+    "standby.charger": 7.4e-05,
+    "standby.gauge": 1.11e-05,
+    "standby.pack_protection": 1.11e-05,
+    "event.person_known": 0.00030734436274509804,
+    "clip.person_known": 0.0,
+    "event.person_unknown": 0.00020489624183006537,
+    "clip.person_unknown": 0.0014405228758169937,
+    "event.false_wake": 0.0006163300653594771,
+    "clip.false_wake": 0.0,
+    "event.button": 4.0979248366013074e-05,
+    "clip.button": 0.0002881045751633987,
+    "periodic.status_publish": 3.235294117647059e-05,
+    "self_discharge": 8.953781965743416e-05,
+    "total": 0.004921771718350245
+   },
+   "nominal_standby_current_ua": 513.9739427662956,
+   "nominal_life_months": 4.472052862430734,
+   "mc": {
+    "n": 20000,
+    "mean_months": 3.9000085060195437,
+    "p5_months": 2.6966228482236647,
+    "p25_months": 3.313510112580106,
+    "median_months": 3.825499277681338,
+    "p75_months": 4.398983643136178,
+    "p95_months": 5.368669624642263,
+    "prob_ge_6_months": 0.0138,
+    "prob_ge_9_months": 0.0,
+    "prob_ge_12_months": 0.0
+   },
+   "plan_rows_w": {
+    "standby": 0.0018378565294117646,
+    "person_inference": 0.0005532198529411764,
+    "clip": 0.0017286274509803923,
+    "false_wakes": 0.0006163300653594771,
+    "self_discharge_and_leakage": 0.00018573781965743416,
+    "total": 0.004921771718350244
+   },
+   "tornado": [
+    {
+     "name": "rate.person_unknown (x1/2..x2)",
+     "life_at_low_h": 3918.1144820242416,
+     "life_at_high_h": 2451.758430908144,
+     "swing_h": 1466.3560511160977,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "life_at_low_h": 3806.7289840391813,
+     "life_at_high_h": 2604.4322145086117,
+     "swing_h": 1202.2967695305697,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "aon_loads.twt_interval",
+     "life_at_low_h": 2737.357102471374,
+     "life_at_high_h": 3916.1014309147413,
+     "swing_h": 1178.744328443367,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.clip_time",
+     "life_at_low_h": 3703.2582757906,
+     "life_at_high_h": 3028.869352385412,
+     "swing_h": 674.3889234051876,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "life_at_low_h": 3502.4723412449675,
+     "life_at_high_h": 2879.3971046205947,
+     "swing_h": 623.0752366243728,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "life_at_low_h": 3445.934821993353,
+     "life_at_high_h": 2826.1696629989324,
+     "swing_h": 619.7651589944207,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "rate.false_wake (x1/2..x2)",
+     "life_at_low_h": 3483.7414639931244,
+     "life_at_high_h": 2905.0789952067184,
+     "swing_h": 578.662468786406,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "battery.deploy_temp",
+     "life_at_low_h": 2803.3887428112457,
+     "life_at_high_h": 3327.722618172665,
+     "swing_h": 524.3338753614194,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.encode_power",
+     "life_at_low_h": 3449.0176653983754,
+     "life_at_high_h": 2954.6908985044042,
+     "swing_h": 494.3267668939711,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "battery.usable_fraction",
+     "life_at_low_h": 3019.555423487886,
+     "life_at_high_h": 3443.3338634067627,
+     "swing_h": 423.77843991887676,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.night_fraction",
+     "life_at_low_h": 3466.749817457516,
+     "life_at_high_h": 3088.7191085893355,
+     "swing_h": 378.0307088681807,
+     "base_h": 3266.834616005651
+    },
+    {
+     "name": "cortex.person_pipeline_time",
+     "life_at_low_h": 3359.662543848282,
+     "life_at_high_h": 3016.7730785739586,
+     "swing_h": 342.88946527432336,
+     "base_h": 3266.834616005651
+    }
+   ],
+   "spearman": [
+    {
+     "name": "rate.person_unknown",
+     "spearman": -0.6132136783530341
+    },
+    {
+     "name": "rate.false_wake",
+     "spearman": -0.308472418102681
+    },
+    {
+     "name": "aon_loads.twt_interval",
+     "spearman": 0.3021778859259447
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "spearman": -0.23651652542429127
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "spearman": -0.20357046659592612
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "spearman": -0.18172331558230825
+    },
+    {
+     "name": "cortex.clip_time",
+     "spearman": -0.17438199011795494
+    },
+    {
+     "name": "rate.person_known",
+     "spearman": -0.16617456260543637
+    },
+    {
+     "name": "battery.deploy_temp",
+     "spearman": 0.14640155975100386
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.14089434535173584
+    },
+    {
+     "name": "cortex.encode_power",
+     "spearman": -0.1354464762551162
+    },
+    {
+     "name": "cortex.night_fraction",
+     "spearman": -0.11990090946725225
+    }
+   ],
+   "event_energy_j": {
+    "person_known": {
+     "base": 1.7703035294117648,
+     "clip": 0.0
+    },
+    "person_unknown": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    },
+    "false_wake": {
+     "base": 1.3312729411764705,
+     "clip": 0.0
+    },
+    "button": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    }
+   }
+  },
+  "quiet_radio_off": {
+   "description": "G1 radio-off target case: 10 events/day total, quiet street.",
+   "mode": "radio_off",
+   "nominal_power_w": {
+    "standby.c6": 3.88235294117647e-05,
+    "standby.sensors": 1.2229411764705882e-05,
+    "standby.regulators_switches": 3.330000000000001e-07,
+    "standby.charger": 7.4e-05,
+    "standby.gauge": 1.11e-05,
+    "standby.pack_protection": 1.11e-05,
+    "event.person_known": 0.00012150098039215686,
+    "clip.person_known": 0.0,
+    "event.person_unknown": 6.075049019607843e-05,
+    "clip.person_unknown": 0.0002881045751633987,
+    "event.false_wake": 5.6240849673202616e-05,
+    "clip.false_wake": 0.0,
+    "event.button": 0.0,
+    "clip.button": 0.0,
+    "periodic.checkin": 2.2467320261437907e-05,
+    "self_discharge": 8.953781965743416e-05,
+    "total": 0.0007861879765201792
+   },
+   "nominal_standby_current_ua": 39.888092209856914,
+   "nominal_life_months": 27.196658458874946,
+   "mc": {
+    "n": 20000,
+    "mean_months": 21.6758030368148,
+    "p5_months": 15.000918249414887,
+    "p25_months": 18.549530353275856,
+    "median_months": 21.30579738622125,
+    "p75_months": 24.40105053710711,
+    "p95_months": 29.54875019659358,
+    "prob_ge_6_months": 1.0,
+    "prob_ge_9_months": 0.9999,
+    "prob_ge_12_months": 0.99645
+   },
+   "plan_rows_w": {
+    "standby": 7.385326143790848e-05,
+    "person_inference": 0.0001822514705882353,
+    "clip": 0.0002881045751633987,
+    "false_wakes": 5.6240849673202616e-05,
+    "self_discharge_and_leakage": 0.00018573781965743416,
+    "total": 0.0007861879765201792
+   },
+   "tornado": [
+    {
+     "name": "rate.person_unknown (x1/2..x2)",
+     "life_at_low_h": 25286.657028846894,
+     "life_at_high_h": 13906.296303918934,
+     "swing_h": 11380.36072492796,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "rate.person_known (x1/2..x2)",
+     "life_at_low_h": 21469.776647621788,
+     "life_at_high_h": 17286.454311603993,
+     "swing_h": 4183.322336017794,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.clip_time",
+     "life_at_low_h": 22562.183946698762,
+     "life_at_high_h": 18401.77917567696,
+     "swing_h": 4160.404771021804,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "life_at_low_h": 21286.95255457922,
+     "life_at_high_h": 17528.882183632268,
+     "swing_h": 3758.0703709469526,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "life_at_low_h": 20850.82126175511,
+     "life_at_high_h": 17403.99640132316,
+     "swing_h": 3446.8248604319524,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.encode_power",
+     "life_at_low_h": 20990.99501015141,
+     "life_at_high_h": 17945.5833300479,
+     "swing_h": 3045.4116801035125,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "radio.reconnect_time",
+     "life_at_low_h": 20881.73143339721,
+     "life_at_high_h": 18107.586693198748,
+     "swing_h": 2774.1447401984624,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.person_pipeline_time",
+     "life_at_low_h": 20637.78229430547,
+     "life_at_high_h": 17865.809006364536,
+     "swing_h": 2771.973287940935,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "battery.usable_fraction",
+     "life_at_low_h": 18403.12958826167,
+     "life_at_high_h": 20908.265813926748,
+     "swing_h": 2505.136225665079,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "cortex.night_fraction",
+     "life_at_low_h": 21071.82622500996,
+     "life_at_high_h": 18792.78366407458,
+     "swing_h": 2279.0425609353806,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "battery.self_discharge",
+     "life_at_low_h": 21023.635875493568,
+     "life_at_high_h": 18831.28014512285,
+     "swing_h": 2192.3557303707166,
+     "base_h": 19867.159004208148
+    },
+    {
+     "name": "rate.false_wake (x1/2..x2)",
+     "life_at_low_h": 20578.178339306385,
+     "life_at_high_h": 18582.995836239264,
+     "swing_h": 1995.1825030671207,
+     "base_h": 19867.159004208148
+    }
+   ],
+   "spearman": [
+    {
+     "name": "rate.person_unknown",
+     "spearman": -0.7498381353445952
+    },
+    {
+     "name": "rate.person_known",
+     "spearman": -0.32686393722865975
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "spearman": -0.17870410359576022
+    },
+    {
+     "name": "cortex.clip_time",
+     "spearman": -0.17313723417684304
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "spearman": -0.16560771822451925
+    },
+    {
+     "name": "rate.false_wake",
+     "spearman": -0.16281541486703852
+    },
+    {
+     "name": "cortex.person_pipeline_time",
+     "spearman": -0.13499515712098786
+    },
+    {
+     "name": "cortex.night_fraction",
+     "spearman": -0.12410094408575234
+    },
+    {
+     "name": "cortex.encode_power",
+     "spearman": -0.12239202461098003
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.12105271050563175
+    },
+    {
+     "name": "radio.reconnect_time",
+     "spearman": -0.12094242990835606
+    },
+    {
+     "name": "battery.self_discharge",
+     "spearman": -0.1075190472482976
+    }
+   ],
+   "event_energy_j": {
+    "person_known": {
+     "base": 2.6244211764705883,
+     "clip": 0.0
+    },
+    "person_unknown": {
+     "base": 2.6244211764705883,
+     "clip": 12.446117647058824
+    },
+    "false_wake": {
+     "base": 1.2148023529411764,
+     "clip": 0.0
+    },
+    "button": {
+     "base": 2.6244211764705883,
+     "clip": 12.446117647058824
+    }
+   }
+  },
+  "plan_mix_twt_radar": {
+   "description": "Plan mix with the mmWave radar populated (always on). Assumes radar halves PIR false wakes.",
+   "mode": "twt",
+   "nominal_power_w": {
+    "standby.c6": 0.001792941176470588,
+    "standby.sensors": 0.001176935294117647,
+    "standby.regulators_switches": 3.330000000000001e-07,
+    "standby.charger": 7.4e-05,
+    "standby.gauge": 1.11e-05,
+    "standby.pack_protection": 1.11e-05,
+    "event.person_known": 0.00012293774509803922,
+    "clip.person_known": 0.0,
+    "event.person_unknown": 8.195849673202615e-05,
+    "clip.person_unknown": 0.0005762091503267974,
+    "event.false_wake": 0.00015408251633986926,
+    "clip.false_wake": 0.0,
+    "event.button": 0.0,
+    "clip.button": 0.0,
+    "periodic.status_publish": 3.235294117647059e-05,
+    "self_discharge": 8.953781965743416e-05,
+    "total": 0.004123488139918872
+   },
+   "nominal_standby_current_ua": 828.7593163751986,
+   "nominal_life_months": 5.3320462005114795,
+   "mc": {
+    "n": 20000,
+    "mean_months": 4.63609408471136,
+    "p5_months": 3.3440434231962612,
+    "p25_months": 3.991672640546331,
+    "median_months": 4.549315916351814,
+    "p75_months": 5.181215130204603,
+    "p95_months": 6.232699203952567,
+    "prob_ge_6_months": 0.0751,
+    "prob_ge_9_months": 0.0,
+    "prob_ge_12_months": 0.0
+   },
+   "plan_rows_w": {
+    "standby": 0.003002562411764706,
+    "person_inference": 0.00020489624183006537,
+    "clip": 0.0005762091503267974,
+    "false_wakes": 0.00015408251633986926,
+    "self_discharge_and_leakage": 0.00018573781965743416,
+    "total": 0.004123488139918872
+   },
+   "tornado": [
+    {
+     "name": "aon_loads.radar_populated",
+     "life_at_low_h": 4791.261651362628,
+     "life_at_high_h": 2653.9918037193797,
+     "swing_h": 2137.2698476432483,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "life_at_low_h": 4687.760410895814,
+     "life_at_high_h": 2988.735985114048,
+     "swing_h": 1699.0244257817658,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "aon_loads.twt_interval",
+     "life_at_low_h": 3165.111525470884,
+     "life_at_high_h": 4854.728067906507,
+     "swing_h": 1689.6165424356232,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "rate.person_unknown (x1/2..x2)",
+     "life_at_low_h": 4230.4278827695025,
+     "life_at_high_h": 3362.01132365134,
+     "swing_h": 868.4165591181627,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "battery.deploy_temp",
+     "life_at_low_h": 3350.6792880429234,
+     "life_at_high_h": 3943.168876251456,
+     "swing_h": 592.4895882085325,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "rails.aon_efficiency",
+     "life_at_low_h": 3538.5366695447697,
+     "life_at_high_h": 4065.743707781334,
+     "swing_h": 527.2070382365641,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "battery.usable_fraction",
+     "life_at_low_h": 3600.5224188504108,
+     "life_at_high_h": 4105.26072499864,
+     "swing_h": 504.73830614822964,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "aon_loads.c6_light_sleep",
+     "life_at_low_h": 4007.4997225273037,
+     "life_at_high_h": 3655.729253291927,
+     "swing_h": 351.7704692353768,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "cortex.clip_time",
+     "life_at_low_h": 4086.457575208069,
+     "life_at_high_h": 3777.1201769386303,
+     "swing_h": 309.33739826943884,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "life_at_low_h": 3998.4605630155984,
+     "life_at_high_h": 3703.51290712058,
+     "swing_h": 294.9476558950182,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "cortex.sensor_start_time",
+     "life_at_low_h": 3968.469584985672,
+     "life_at_high_h": 3690.2689378606688,
+     "swing_h": 278.20064712500334,
+     "base_h": 3895.0597494736357
+    },
+    {
+     "name": "cortex.encode_power",
+     "life_at_low_h": 3978.582863221271,
+     "life_at_high_h": 3738.110098942844,
+     "swing_h": 240.4727642784269,
+     "base_h": 3895.0597494736357
+    }
+   ],
+   "spearman": [
+    {
+     "name": "aon_loads.radar_populated",
+     "spearman": -0.6586833807492084
+    },
+    {
+     "name": "aon_loads.twt_interval",
+     "spearman": 0.39710032118375077
+    },
+    {
+     "name": "rate.person_unknown",
+     "spearman": -0.32231836511429585
+    },
+    {
+     "name": "aon_loads.c6_twt_wake_energy",
+     "spearman": -0.28951427697078563
+    },
+    {
+     "name": "battery.deploy_temp",
+     "spearman": 0.16254487671886217
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.14391833549829583
+    },
+    {
+     "name": "rails.aon_efficiency",
+     "spearman": 0.14123306529808263
+    },
+    {
+     "name": "rate.false_wake",
+     "spearman": -0.11121747105354365
+    },
+    {
+     "name": "aon_loads.c6_light_sleep",
+     "spearman": -0.09318269954295673
+    },
+    {
+     "name": "cortex.ir_led_power",
+     "spearman": -0.08879991545399976
+    },
+    {
+     "name": "cortex.clip_time",
+     "spearman": -0.08673416093933539
+    },
+    {
+     "name": "rate.person_known",
+     "spearman": -0.08256222340590555
+    }
+   ],
+   "event_energy_j": {
+    "person_known": {
+     "base": 1.7703035294117648,
+     "clip": 0.0
+    },
+    "person_unknown": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    },
+    "false_wake": {
+     "base": 1.3312729411764705,
+     "clip": 0.0
+    },
+    "button": {
+     "base": 1.7703035294117648,
+     "clip": 12.446117647058824
+    }
+   }
+  }
+ }
+}

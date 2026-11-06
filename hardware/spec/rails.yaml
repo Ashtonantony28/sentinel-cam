@@ -1,0 +1,201 @@
+# Rev A power tree / rail table (machine-readable; spec/power_tree.md is the prose version).
+# Domains: BAT (cell / charger side), AON (always on, 3V3_AON tree), CTX (cortex, gated by SYS_CTX).
+# max_current_a = what the rail must be designed for (regulator rating must exceed it).
+# Numbers marked src: AN6000 are from ST AN6000 Rev 1 (VRM requirements for STM32N6):
+#   https://www.st.com/resource/en/application_note/an6000-how-to-build-the-discrete-power-supply-for-stm32n6-mcus-stmicroelectronics.pdf
+rails:
+  VBAT:
+    domain: BAT
+    source: CELL
+    regulator: {refdes: BT1, mpn: GENERIC-LIPO-1S-5000-NTC}
+    v_nom: 3.7
+    v_min: 3.0
+    v_max: 4.2
+    max_current_a: 2.0
+    enable: always
+    jumper: JP1
+    test_point: TP1
+    loads: [U12 (BATFET), U13 (CELL sense)]
+    note: "Main battery shunt. Measure total device current here for G1/G2."
+  SYS:
+    domain: BAT
+    source: VBAT
+    regulator: {refdes: U12, mpn: BQ25798RQMR}
+    v_nom: 3.7
+    v_min: 3.0
+    v_max: 4.2
+    max_current_a: 2.0
+    enable: always
+    jumper: JP2
+    test_point: TP2
+    loads: [U14, U23, U24, U25]
+    note: "BQ25798 NVDC system node; VSYSMIN setting TO-VERIFY[TV-03]."
+  3V3_AON:
+    domain: AON
+    source: SYS
+    regulator: {refdes: U14, mpn: TPS62840DLCR}
+    v_nom: 3.3
+    v_min: 3.0
+    v_max: 3.6
+    max_current_a: 0.5
+    enable: always
+    jumper: JP3
+    test_point: TP3
+    loads: [U4 ESP32-C6-MINI-1, U8 PIR, U10 VEML7700, U27 ATECC608B, U26 AND gate, I2C_AON pull-ups]
+    note: "C6 module: 3.0-3.6 V, >= 0.5 A supply recommended, TX peak 382 mA (module datasheet). TPS62840 is rated 750 mA. Below ~3.4 V VBAT the buck runs at 100 % duty and 3V3_AON tracks VBAT: TO-VERIFY[TV-18]."
+  SYS_CTX:
+    domain: CTX
+    source: SYS
+    regulator: {refdes: U23, mpn: TPS22917DBVR}
+    v_nom: 3.7
+    v_min: 3.0
+    v_max: 4.2
+    max_current_a: 1.5
+    enable: CTX_EN
+    jumper: JP4
+    test_point: TP4
+    loads: [U15, U16, U17]
+    note: "Cortex domain gate. TPS22917: 2 A, 10 nA off, CT sets ramp (CT open: 100 us; 1000 pF: 4 ms at 5 V). Use CT ~ 220 pF -> ~1 ms: TO-VERIFY[TV-19]."
+  3V3_CTX:
+    domain: CTX
+    source: SYS_CTX
+    regulator: {refdes: U16, mpn: TPS63802DLAR}
+    v_nom: 3.3
+    v_min: 3.1
+    v_max: 3.5
+    max_current_a: 0.5
+    enable: SYS_CTX
+    jumper: JP5
+    test_point: TP5
+    loads: [N6 VDD, N6 VDDIO (3.3 V banks), U19, U18, U20, I2C_CAM pull-ups]
+    src: AN6000
+    note: "AN6000: VDD 3.1/3.3/3.5 V, VRM >= 200 mA, 20 mVpp noise, +/-50 mV transient; ~100 mA possible on VDD with a 24-bit LTDC (not used here)."
+  VDDA1V8_AON:
+    domain: CTX
+    source: 3V3_CTX
+    regulator: {refdes: U19, mpn: TLV75518PDBVR}
+    v_nom: 1.8
+    v_min: 1.7
+    v_max: 1.9
+    max_current_a: 0.01
+    enable: SYS_CTX
+    jumper: JP6
+    test_point: TP6
+    loads: [N6 VDDA1V8_AON]
+    src: AN6000
+    note: "N6 pin name is VDDA1V8_AON (AN6000 also writes VDDA18AON). In this design the whole N6 is gated, so its AON supply is inside the CTX domain."
+  VDDCORE:
+    domain: CTX
+    source: SYS_CTX
+    regulator: {refdes: U15, mpn: TPS62088YFPR}
+    v_nom: 0.81
+    v_min: 0.79
+    v_max: 0.912
+    max_current_a: 2.0
+    enable: VDDCORE_EN
+    jumper: JP7
+    test_point: TP7
+    loads: [N6 VDDCORE (M55, NPU, SRAM, ISP)]
+    src: AN6000
+    note: "AN6000: nominal 0.790/0.810/0.830 V, high-perf 0.868/0.890/0.912 V selected by PWR_VCORE_DVFS via Q1; 2000 mA; 30 mVpp ripple; +/-35 mV transient; peak ~1.5 W worst case. JP7 must be a low-resistance shunt footprint (2 A)."
+  VDDA1V8:
+    domain: CTX
+    source: 3V3_CTX
+    regulator: {refdes: U18, mpn: TLV75518PDBVR}
+    v_nom: 1.8
+    v_min: 1.746
+    v_max: 1.9
+    max_current_a: 0.05
+    enable: VDDCORE_EN
+    jumper: JP8
+    test_point: TP8
+    loads: ["N6 VDDA1V8 (analog; which pins include CSI/USB/PMU TO-VERIFY[TV-12])"]
+    src: AN6000
+    note: "AN6000: LDO for low noise, 50 mA, 20 mVpp noise, +/-30 mV transient, EN + discharge."
+  1V8_CTX:
+    domain: CTX
+    source: SYS_CTX
+    regulator: {refdes: U17, mpn: TPS62088YFPR}
+    v_nom: 1.8
+    v_min: 1.71
+    v_max: 1.89
+    max_current_a: 0.4
+    enable: VDDCORE_EN
+    jumper: JP9
+    test_point: TP9
+    loads: [U2 PSRAM, U3 NOR, N6 XSPI port VDDIO, camera VDDIO, U21]
+    note: "Treated as AN6000 VDD_periph (enabled by PWR_ON). Whether the N6 XSPI port supplies must rise with VDD or with PWR_ON is TO-VERIFY[TV-12]. 1.8 V memories per UM3300 (DK uses 1.8 V PSRAM and NOR)."
+  CAM_2V8:
+    domain: CTX
+    source: 3V3_CTX
+    regulator: {refdes: U20, mpn: TLV75528PDBVR}
+    v_nom: 2.8
+    v_min: 2.7
+    v_max: 2.9
+    max_current_a: 0.1
+    enable: CAM_PWR_EN
+    jumper: JP10
+    test_point: TP10
+    loads: [U5 VANA]
+    note: "VD66GY VANA 2.8 V (datasheet https://file.icallin.com/resource/en/datasheet/vd66gy.pdf). Sensor sequencing per its datasheet: TO-VERIFY[TV-26]."
+  CAM_1V15:
+    domain: CTX
+    source: 1V8_CTX
+    regulator: {refdes: U21, mpn: TLV75801PDBVR}
+    v_nom: 1.15
+    v_min: 1.1
+    v_max: 1.2
+    max_current_a: 0.15
+    enable: CAM_PWR_EN
+    jumper: null
+    test_point: TP11
+    loads: [U5 VCORE (digital core + MIPI TX)]
+    note: "VD66GY VCORE 1.15 V. Streaming total 120-145 mW (datasheet)."
+  SYS_IR:
+    domain: CTX
+    source: SYS
+    regulator: {refdes: U24, mpn: TPS22917DBVR}
+    v_nom: 3.7
+    v_min: 3.0
+    v_max: 4.2
+    max_current_a: 0.6
+    enable: IR_EN
+    jumper: JP11
+    test_point: TP12
+    loads: [D1-D4 via Q2 constant-current sink]
+    note: "Enable is an N6 GPIO with a pull-down, so it is off whenever the cortex is off. Grouped in CTX because only the N6 drives it."
+  SYS_AUDIO:
+    domain: CTX
+    source: SYS
+    regulator: {refdes: U25, mpn: TPS22917DBVR}
+    v_nom: 3.7
+    v_min: 3.0
+    v_max: 4.2
+    max_current_a: 0.5
+    enable: AUDIO_EN
+    jumper: JP12
+    test_point: TP13
+    loads: [U11 MAX98357A]
+    note: "Supply range TO-VERIFY[TV-28]."
+
+# Order matters. Times are minimums unless noted. AN6000 = verified; others = design targets.
+sequencing:
+  power_up:
+    - {step: 1, actor: C6, action: "drive CTX_CORE_EN low (VDDCORE held off), all link GPIOs Hi-Z", rails_up: []}
+    - {step: 2, actor: C6, action: "CTX_EN high -> U23 ramps SYS_CTX (~1 ms with CT)", rails_up: [SYS_CTX]}
+    - {step: 3, actor: hardware, action: "3V3_CTX (VDD) and VDDA1V8_AON rise (EN from SYS_CTX)", rails_up: [3V3_CTX, VDDA1V8_AON]}
+    - {step: 4, actor: C6, action: "after >= 2 ms, CTX_CORE_EN high so VDDCORE follows PWR_ON", rails_up: []}
+    - {step: 5, actor: N6, action: "VDD and VDDA1V8_AON above VPOR (1.67 V) -> N6 asserts PWR_ON", rails_up: [], src: AN6000}
+    - {step: 6, actor: hardware, action: "PWR_ON AND CTX_CORE_EN (U26 output VDDCORE_EN) enables VDDCORE, VDDA1V8 and 1V8_CTX together. VDDCORE must go from 0.61 V to > 0.782 V within 200 us; slew >= 0.86 V/ms", rails_up: [VDDCORE, VDDA1V8, 1V8_CTX], src: AN6000}
+    - {step: 7, actor: N6, action: "VDDCORE > VRDY (0.66 V) -> tdelay_VDDCORE 340 us -> HSI -> option bytes -> boot ROM (5 ms EADLY timer) -> FSBL from NOR; FSBL clears SDEN (external SMPS / bypass)", rails_up: [], src: AN6000}
+    - {step: 8, actor: N6, action: "app sets CAM_PWR_EN (camera rails), IR_EN/AUDIO_EN only when needed", rails_up: [CAM_2V8, CAM_1V15, SYS_IR, SYS_AUDIO]}
+    - {step: 9, actor: N6, action: "N6 signals READY to C6 (UART frame); C6 then enables its SPI slave pins", rails_up: []}
+  power_down:
+    - {step: 1, actor: C6, action: "send SHUTDOWN over control UART; N6 finishes flash writes, drops CAM/IR/AUDIO enables", rails_down: [CAM_2V8, CAM_1V15, SYS_IR, SYS_AUDIO]}
+    - {step: 2, actor: N6, action: "enter Standby -> PWR_ON = 0 for at least POPL (set POPL > VDDCORE regulator discharge time)", rails_down: [VDDCORE, VDDA1V8, 1V8_CTX], src: AN6000}
+    - {step: 3, actor: C6, action: "observe PWR_ON low on N6_PWR_ON_SENSE (or 200 ms timeout) and, either way, drive CTX_CORE_EN low", rails_down: []}
+    - {step: 4, actor: C6, action: "wait >= 5 ms for VDDCORE/VDDA1V8 discharge (TO-VERIFY[TV-13]), set link GPIOs Hi-Z, then CTX_EN low", rails_down: [3V3_CTX, VDDA1V8_AON, SYS_CTX]}
+  forced_power_down:
+    - {step: 1, actor: C6, action: "N6 unresponsive: CTX_CORE_EN low -> VDDCORE_EN low regardless of PWR_ON; VDDCORE, VDDA1V8, 1V8_CTX discharge", rails_down: [VDDCORE, VDDA1V8, 1V8_CTX]}
+    - {step: 2, actor: C6, action: "wait >= 5 ms (TO-VERIFY[TV-13]), link GPIOs Hi-Z, CTX_EN low", rails_down: [CAM_2V8, CAM_1V15, SYS_IR, SYS_AUDIO, 3V3_CTX, VDDA1V8_AON, SYS_CTX]}
+  rule: "AN6000: VDDCORE and VDDA18x must be low before VDD and VDDA18AON. The power_down list must bring VDDCORE and VDDA1V8 down in an earlier step than 3V3_CTX and VDDA1V8_AON."

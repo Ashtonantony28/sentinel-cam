@@ -1,0 +1,87 @@
+# Rev 0 bench rig: STM32N6570-DK + ESP32-C6-DevKitC-1 + PIR + PPK2 (machine-readable).
+# Header tables below are copied from the vendor documents (verified); `wires` may only use them.
+sources:
+  devkitc: "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html"
+  dk: "https://www.st.com.cn/resource/en/user_manual/um3300-discovery-kit-with-stm32n657x0-mcu-stmicroelectronics.pdf (UM3300 Table 16 Arduino, Table 13 STMod+, CN2 IDD)"
+  ppk2: "https://docs.nordicsemi.com/r/bundle/ug_ppk2/page/ug/ppk/ppk_user_guide_intro.html"
+
+devkitc_headers:   # ESP32-C6-DevKitC-1: header-pin -> GPIO number or power/ground name
+  J1-1: 3V3
+  J1-2: RST
+  J1-3: 4
+  J1-4: 5
+  J1-5: 6
+  J1-6: 7
+  J1-7: 0
+  J1-8: 1
+  J1-9: 8
+  J1-10: 10
+  J1-11: 11
+  J1-12: 2
+  J1-13: 3
+  J1-14: 5V
+  J1-15: GND
+  J3-1: GND
+  J3-2: 16
+  J3-3: 17
+  J3-4: 15
+  J3-5: 23
+  J3-6: 22
+  J3-7: 21
+  J3-8: 20
+  J3-9: 19
+  J3-10: 18
+  J3-11: 9
+  J3-12: GND
+  J3-13: 13
+  J3-14: 12
+  J3-15: GND
+devkitc_avoid: {8: "RGB LED + strapping", 9: "boot strapping", 15: "strapping", 16: "U0TXD to USB-UART bridge", 17: "U0RXD to USB-UART bridge", 12: "USB D-", 13: "USB D+", 4: "strapping MTMS", 5: "strapping MTDI"}
+
+dk_arduino:        # STM32N6570-DK Arduino connectors: pin -> [arduino label, MCU pin, function]
+  CN11-1: [D0, PF6, USART2_RX]
+  CN11-2: [D1, PD5, USART2_TX]
+  CN11-3: [D2, PD0, GPIO]
+  CN11-4: [D3, PE9, TIM1_CH1]
+  CN11-5: [D4, PH5, GPIO]
+  CN11-6: [D5, PE10, TIM1_CH2N]
+  CN11-7: [D6, PE13, TIM1_CH3]
+  CN11-8: [D7, PD6, GPIO]
+  CN12-1: [D8, PE7, GPIO]
+  CN12-2: [D9, PE14, TIM1_CH4]
+  CN12-3: [D10, PA3, SPI_CS]
+  CN12-4: [D11, PG2, SPI5_MOSI]
+  CN12-5: [D12, PH8, SPI5_MISO]
+  CN12-6: [D13, PE15, SPI5_SCK]
+  CN12-7: [GND, null, GND]
+  CN12-9: [D14, PC1, I2C1_SDA]
+  CN12-10: [D15, PH9, I2C1_SCL]
+  CN8-4: [+3V3, null, 3V3 out]
+  CN8-5: [+5V, null, 5V out]
+  CN8-6: [GND, null, GND]
+  CN8-7: [GND, null, GND]
+  CN8-8: [VIN, null, power input]
+dk_logic_level_v: 3.3   # UM3300: Arduino digital I/O are 3.3 V (ADC pins are 1.8 V)
+
+wires:
+  # name                 C6 DevKitC pin   DK pin     note
+  - {signal: HOSTED_SCLK,       c6: J3-9,  dk: CN12-6,  dir: dk_to_c6, note: "N6 SPI5 master SCK -> C6 GPIO19"}
+  - {signal: HOSTED_MOSI,       c6: J3-8,  dk: CN12-4,  dir: dk_to_c6, note: "SPI5_MOSI PG2 -> C6 GPIO20"}
+  - {signal: HOSTED_MISO,       c6: J3-7,  dk: CN12-5,  dir: c6_to_dk, note: "C6 GPIO21 -> SPI5_MISO PH8"}
+  - {signal: HOSTED_CS,         c6: J3-10, dk: CN12-3,  dir: dk_to_c6, note: "PA3 (D10) as software/hardware NSS -> C6 GPIO18"}
+  - {signal: HOSTED_HANDSHAKE,  c6: J3-6,  dk: CN11-3,  dir: c6_to_dk, note: "C6 GPIO22 -> PD0 (EXTI)"}
+  - {signal: HOSTED_DATA_READY, c6: J3-5,  dk: CN11-5,  dir: c6_to_dk, note: "C6 GPIO23 -> PH5 (EXTI)"}
+  - {signal: CTRL_UART_C6_TX,   c6: J1-10, dk: CN11-1,  dir: c6_to_dk, note: "C6 UART1 TX on GPIO10 -> USART2_RX PF6 (GPIO16/17 belong to the USB-UART bridge, TO-VERIFY[TV-33])"}
+  - {signal: CTRL_UART_C6_RX,   c6: J1-11, dk: CN11-2,  dir: dk_to_c6, note: "USART2_TX PD5 -> C6 GPIO11"}
+  - {signal: N6_READY,          c6: J1-7,  dk: CN11-8,  dir: dk_to_c6, note: "PD6 (D7) -> C6 GPIO0: stands in for PWR_ON sense / ready"}
+  - {signal: GND,               c6: J3-1,  dk: CN12-7,  dir: none, note: "common ground; add a second GND wire J3-12 <-> CN8-6"}
+  - {signal: GND_2,             c6: J3-12, dk: CN8-6,   dir: none}
+  - {signal: PIR_OUT,           c6: J1-13, dk: null,    dir: to_c6, note: "EKMB output -> C6 GPIO3 (LP GPIO, deep-sleep wake)"}
+  - {signal: BUTTON_N,          c6: J1-12, dk: null,    dir: to_c6, note: "button to GND, 100k pull-up to 3V3 -> C6 GPIO2 (LP)"}
+  - {signal: I2C_AON_SDA,       c6: J1-5,  dk: null,    dir: bidir, note: "MAX17048 / VEML7700 breakouts, C6 GPIO6 (LP_I2C_SDA)"}
+  - {signal: I2C_AON_SCL,       c6: J1-6,  dk: null,    dir: to_breakouts, note: "C6 GPIO7 (LP_I2C_SCL)"}
+  - {signal: CTX_EN,            c6: J1-8,  dk: null,    dir: to_switch, note: "C6 GPIO1 -> high-side load switch on the DK 5 V input (TPS22917-class breakout or P-FET). TO-VERIFY[TV-20]"}
+  - {signal: PIR_VDD,           c6: J1-1,  dk: null,    dir: power, note: "3V3 to EKMB (2.3-4 V) and breakouts"}
+  - {signal: MARK_DK_0,         c6: null,  dk: CN12-1,  dir: to_ppk2, note: "PE7 (D8) -> PPK2 logic D0: inference window marker"}
+  - {signal: MARK_DK_1,         c6: null,  dk: CN12-2,  dir: to_ppk2, note: "PE14 (D9) -> PPK2 logic D1: clip/encode marker"}
+  - {signal: MARK_C6,           c6: J3-4,  dk: null,    dir: to_ppk2, note: "C6 GPIO15 -> PPK2 logic D2 (TWT/radio state); GPIO15 is a strap: drive only after boot"}

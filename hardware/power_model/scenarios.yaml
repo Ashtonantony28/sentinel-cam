@@ -1,0 +1,33 @@
+# Daily event mixes. Rates are mean events/day. rate_cv is the coefficient of variation of the
+# household's true mean rate (Monte-Carlo samples a gamma-distributed mean per run, then the
+# daily count is Poisson; over months only the mean matters).
+#
+# mode: twt        Wi-Fi kept associated with iTWT (plan default)
+#       radio_off  C6 in deep sleep, reconnect on demand (plan fallback)
+scenarios:
+  plan_mix_twt:
+    description: "Plan 4.4 mix: 10 person events/day (4 unknown -> clip), 20 false wakes/day, Wi-Fi associated (TWT)."
+    mode: twt
+    rates: {person_known: 6, person_unknown: 4, false_wake: 20, button: 0, status_publish: 24}
+    rate_cv: 0.4
+  plan_mix_radio_off:
+    description: "Same mix, radio-off standby with reconnect-on-event (plan fallback). False-wake logs are batched into the periodic check-ins."
+    mode: radio_off
+    rates: {person_known: 6, person_unknown: 4, false_wake: 20, button: 0, checkin: 4}
+    rate_cv: 0.4
+  busy_door_twt:
+    description: "Busy household: 25 person events (10 unknown), 40 false wakes, 2 rings/day."
+    mode: twt
+    rates: {person_known: 15, person_unknown: 10, false_wake: 40, button: 2, status_publish: 24}
+    rate_cv: 0.4
+  quiet_radio_off:
+    description: "G1 radio-off target case: 10 events/day total, quiet street."
+    mode: radio_off
+    rates: {person_known: 4, person_unknown: 2, false_wake: 4, button: 0, checkin: 2}
+    rate_cv: 0.4
+  plan_mix_twt_radar:
+    description: "Plan mix with the mmWave radar populated (always on). Assumes radar halves PIR false wakes."
+    mode: twt
+    radar_populated: true
+    rates: {person_known: 6, person_unknown: 4, false_wake: 10, button: 0, status_publish: 24}
+    rate_cv: 0.4

@@ -1,0 +1,39 @@
+# TO-VERIFY register: every open question in hardware/ has one ID here.
+# Anything in hardware/ that says TO-VERIFY must cite one of these IDs as TO-VERIFY[TV-xx]
+# (tests/test_spec_consistency.py enforces that). Close an item by moving it to `closed:`
+# with the measurement or datasheet that settled it.
+open:
+  TV-01: {topic: "ESP32-C6 Wi-Fi 6 iTWT standby current on OUR access point and TWT interval actually granted. Only third-party number: 708 uA avg at 16 s interval (hackaday.io/project/191398/log/223940).", when: M2, owner: WS5}
+  TV-02: {topic: "Energy per TWT service period (derived: (708-180) uA x 3.3 V x 16 s = 27.9 mJ). Floor and per-wake energy must be measured separately with PPK2.", when: M2, owner: WS5}
+  TV-03: {topic: "BQ25798 battery-only quiescent current, typical value. Only verified figure: 'up to 24 uA' with VBUS absent and ADC disabled (TI E2E 1508998). Datasheet sec. 6.5 not read.", when: M0, owner: WS5}
+  TV-04: {topic: "Cortex-domain power per phase (boot, sensor start/AE, pipeline, encode, upload) on STM32N6570-DK. All are estimates.", when: M1, owner: WS5}
+  TV-05: {topic: "STM32N6 cold boot to first frame (plan target 150 ms) from external NOR.", when: M1, owner: WS2}
+  TV-06: {topic: "ESP-Hosted SPI throughput N6->C6->Wi-Fi for clip upload (assumed 8 Mbit/s effective).", when: M2, owner: WS2}
+  TV-07: {topic: "Radio-off fallback: Wi-Fi reconnect + DHCP + MQTT/TLS session time and charge (assumed 2 s at 110 mA).", when: M2, owner: WS5}
+  TV-08: {topic: "Li-ion low-rate capacity vs temperature and calendar fade for the chosen 5000 mAh pouch cell (curve in constants.yaml is an estimate).", when: M0, owner: WS5}
+  TV-09: {topic: "npu_pj_per_mac: fit uses ResNet-8 = 12.5 MMAC (commonly cited, not verified from the MLPerf Tiny paper) and AD autoencoder = 264,192 MAC (computed from the paper's layer sizes). Core domain only.", when: M1, owner: WS1}
+  TV-10: {topic: "ATECC608B default I2C address per provisioning variant. Verified table is for ATECC608A (TNGTLS 0x35, TFLXTLS 0x36, MAHDA 0x60). TFLXTLS 0x36 would collide with MAX17048.", when: M0, owner: WS5}
+  TV-11: {topic: "I2C addresses of the ToF sensor and IMU on the MB1854 camera module (shares DK I2C1 with Arduino D14/D15).", when: M1, owner: WS5}
+  TV-12: {topic: "AN5967 chapter 'Main and auxiliary supplies sequencing' not read. Need: VDD_periph definition, XSPI port VDDIO supplies, VDDA18CSI/VDDA18USB/VDDA18PMU/VDDSMPS order in external-SMPS mode.", when: M0, owner: WS5}
+  TV-13: {topic: "STM32N6 PWR_ON level while NRST is held low, POPL range, and VDDCORE regulator discharge time vs POPL.", when: M0, owner: WS5}
+  TV-14: {topic: "STM32N657X0H3Q Rev A ball assignment for every N6 signal in spec/interfaces.yaml (generate with STM32CubeMX; no N6 ball numbers are given in this package).", when: M4, owner: WS5}
+  TV-15: {topic: "ESP32-C6 strapping semantics for GPIO4 (MTMS), GPIO5 (MTDI), GPIO8, GPIO15 with the pull states we impose (PIR/radar low at reset, PMIC_INT_N pulled high, CTX_CORE_EN pulled low).", when: M0, owner: WS5}
+  TV-16: {topic: "ESP-Hosted (MCU host) SPI full-duplex: configurable C6 pins, whether the host-driven C6 reset line can be disabled, max SPI clock on C6 as slave.", when: M1, owner: WS2}
+  TV-17: {topic: "Whether ESP32-C6 needs the external 32.768 kHz crystal (GPIO0/1) to reach datasheet light-sleep current with Wi-Fi connected.", when: M2, owner: WS5}
+  TV-18: {topic: "TPS62840 VSET resistor for 3.3 V and its 100% mode behaviour below ~3.4 V battery; C6 module minimum 3.0 V sets the effective battery cutoff.", when: M0, owner: WS5}
+  TV-19: {topic: "VDDCORE regulator (TPS62088 candidate): meets AN6000 VRM spec (2 A, 30 mVpp ripple, +/-35 mV transient, slew >= 0.86 V/ms, 0.61->0.782 V within 200 us, DVFS 0.81/0.89 V via feedback switch, active discharge).", when: M4, owner: WS5}
+  TV-20: {topic: "Rev 0: STM32N6570-DK runs from 5V_VIN (JP2) with ST-LINK unpowered so the C6 can gate it; behaviour of the ST-LINK when its USB is unplugged.", when: M2, owner: WS5}
+  TV-21: {topic: "PPK2 logic-port input thresholds (marker GPIOs at 3.3 V) and a >1 A meter for DK VDDCORE (PPK2 max 1 A).", when: M1, owner: WS5}
+  TV-22: {topic: "CSI-2 D-PHY supply pin name/decoupling on N6 and the image-sensor vendor's intra/inter-pair skew limits.", when: M4, owner: WS5}
+  TV-23: {topic: "XSPI length-matching tolerance at 200 MHz DDR (ST hardware design AN / DK layout).", when: M4, owner: WS5}
+  TV-24: {topic: "ESP32-C6-MINI-1 antenna keep-out dimensions and placement rules (module datasheet layout section not read).", when: M4, owner: WS5}
+  TV-25: {topic: "Qty-5 prices for every BOM line whose price_source is 'estimate'.", when: M0, owner: WS5}
+  TV-26: {topic: "VD66GY small-quantity availability and full ordering code; otherwise use a CSI-2 camera module on FFC.", when: M0, owner: WS5}
+  TV-27: {topic: "BGT60LTR11AIP supply voltage and average current in autonomous motion-detect mode (DNP by default).", when: M2, owner: WS5}
+  TV-28: {topic: "MAX98357A supply range when fed from SYS (3.0-4.2 V) and shutdown current via SD_MODE.", when: M4, owner: WS5}
+  TV-29: {topic: "EKMB 1 uA variant (EKMB1101111) detection performance at doorstep range and its circuit-stability time.", when: M2, owner: WS5}
+  TV-30: {topic: "Full orderable MPN suffixes for regulators, LDOs, load switches, secure element, connectors listed in bom.csv.", when: M0, owner: WS5}
+  TV-31: {topic: "Cell protection IC (PCM) current on the chosen pouch pack.", when: M0, owner: WS5}
+  TV-32: {topic: "6-layer stackup and trace geometry for 100 ohm diff / 50 ohm SE from the chosen fab's impedance calculator.", when: M4, owner: WS5}
+  TV-33: {topic: "ESP32-C6-DevKitC-1: GPIO16/17 are wired to the USB-UART bridge (so the control UART uses GPIO10/11 on Rev 0); confirm no other on-board load on GPIO10/11/0/1.", when: M2, owner: WS5}
+closed: {}
