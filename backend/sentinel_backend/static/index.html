@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel events</title>
+<style>
+  :root { --bg:#fafafa; --fg:#1d1d1f; --muted:#6b6b70; --line:#e2e2e6; --accent:#2b59c3; --warn:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#151517; --fg:#ececf0; --muted:#9a9aa2; --line:#2c2c31; --accent:#8fb0ff; --warn:#ff8a80; } }
+  body { margin:0; font:14px/1.45 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line); }
+  h1 { font-size:16px; margin:0 12px 0 0; }
+  input, select, button { font:inherit; padding:4px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:inherit; }
+  main { padding:12px 16px; overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; min-width:720px; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; }
+  .act-NOTIFY_UNKNOWN_WITH_CLIP, .act-RING { color:var(--warn); font-weight:600; }
+  .muted { color:var(--muted); }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sentinel events</h1>
+  <label>Token <input id="tok" type="password" size="18" autocomplete="off"></label>
+  <label>Device <input id="dev" size="13" placeholder="all"></label>
+  <label>Action <select id="act"><option value="">all</option><option>NONE</option><option>LOG_KNOWN</option><option>NOTIFY_UNKNOWN_WITH_CLIP</option><option>RING</option></select></label>
+  <button id="go">Refresh</button>
+  <span id="msg" class="muted"></span>
+</header>
+<main>
+  <table>
+    <thead><tr><th>Time</th><th>Device</th><th>Wake</th><th>Action</th><th>Person</th><th>Faces</th><th>Clip</th><th>Battery</th><th>Energy</th><th>FW / model</th><th>Feedback</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let token = "";
+try { token = localStorage.getItem("sentinel_token") || ""; } catch (e) {}
+$("tok").value = token;
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({"Authorization": "Bearer " + token}, opts.headers || {});
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error(r.status + " " + (await r.text()));
+  return r;
+}
+async function feedback(dev, ts, label) {
+  const body = {event_ts: ts, label};
+  if (label === "known") { const id = prompt("Person id?"); if (id === null) return; body.person_id = parseInt(id, 10); }
+  try { await api(`/api/devices/${dev}/feedback`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)}); $("msg").textContent = "feedback sent"; }
+  catch (e) { $("msg").textContent = e.message; }
+}
+async function openClip(id) {
+  try { const r = await api(`/api/clips/${encodeURIComponent(id)}`); const url = URL.createObjectURL(await r.blob()); window.open(url, "_blank"); }
+  catch (e) { $("msg").textContent = e.message; }
+}
+async function load() {
+  token = $("tok").value.trim();
+  try { localStorage.setItem("sentinel_token", token); } catch (e) {}
+  const q = new URLSearchParams({limit: "200"});
+  if ($("dev").value.trim()) q.set("dev", $("dev").value.trim());
+  if ($("act").value) q.set("action", $("act").value);
+  try {
+    const events = await (await api("/api/events?" + q)).json();
+    $("rows").innerHTML = events.map(e => `<tr>
+      <td>${esc(new Date(e.ts).toLocaleString())}</td><td>${esc(e.dev)}</td><td>${esc(e.wake)}</td>
+      <td class="act-${esc(e.action)}">${esc(e.action)}</td><td>${e.person_conf.toFixed(2)}</td>
+      <td>${esc(e.faces.map(f => (f.id === null ? "?" : "#" + f.id) + " " + f.score.toFixed(2)).join(", "))}</td>
+      <td>${e.clip_id ? `<a href="#" data-clip="${esc(e.clip_id)}">view</a>` : '<span class="muted">-</span>'}</td>
+      <td>${e.soc_pct}% <span class="muted">${e.battery_mv} mV</span></td><td>${e.energy_mj} mJ</td>
+      <td class="muted">${esc(e.fw)} / ${esc(e.model)}</td>
+      <td><button data-fb="false_alarm" data-dev="${esc(e.dev)}" data-ts="${e.ts}">false alarm</button>
+          <button data-fb="person" data-dev="${esc(e.dev)}" data-ts="${e.ts}">person</button>
+          <button data-fb="known" data-dev="${esc(e.dev)}" data-ts="${e.ts}">known</button></td></tr>`).join("");
+    $("msg").textContent = `${events.length} events`;
+  } catch (e) { $("msg").textContent = e.message; }
+}
+$("rows").addEventListener("click", (ev) => {
+  const t = ev.target;
+  if (t.dataset.fb) feedback(t.dataset.dev, Number(t.dataset.ts), t.dataset.fb);
+  if (t.dataset.clip) { ev.preventDefault(); openClip(t.dataset.clip); }
+});
+$("go").addEventListener("click", load);
+if (token) load();
+</script>
+</body>
+</html>

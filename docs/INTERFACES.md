@@ -20,7 +20,7 @@ Topics, `{dev}` = device id (12 hex chars from MAC):
   `{"v":1,"dev":str,"ts":int_unix_ms,"wake":"PIR|RADAR|BUTTON|TIMER","action":"NONE|LOG_KNOWN|NOTIFY_UNKNOWN_WITH_CLIP|RING","person_conf":float,"faces":[{"id":int|null,"score":float}],"clip_id":str|null,"battery_mv":int,"soc_pct":int,"fw":str,"model":str,"energy_mj":int}`
 - `sentinel/{dev}/clip/{clip_id}` (device → backend): chunks, header JSON `{"seq":int,"last":bool}` then binary; or HTTP PUT to `/api/clips/{clip_id}` (preferred).
 - `sentinel/{dev}/feedback` (backend → device, QoS 1): `{"v":1,"event_ts":int,"label":"false_alarm|person|known","person_id":int|null}`
-- `sentinel/{dev}/ota` (backend → device, retained): `{"v":1,"kind":"fw_n6|fw_c6|model","version":str,"url":str,"size":int,"sha256":hex}`
+- `sentinel/{dev}/ota/{kind}` (backend → device, retained; `{kind}` ∈ `fw_n6|fw_c6|model`, one retained notice per kind so a sleeping device sees all three; changed 2026-11-06 from a single `ota` topic): `{"v":1,"kind":"fw_n6|fw_c6|model","version":str,"url":str,"size":int,"sha256":hex}`
 - `sentinel/{dev}/status` (device → backend, retained, LWT "offline").
 
 ## 4. OTA image + manifest

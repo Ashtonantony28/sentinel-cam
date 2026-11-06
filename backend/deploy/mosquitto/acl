@@ -1,0 +1,12 @@
+# Backend: everything under sentinel/
+user backend
+topic readwrite sentinel/#
+
+# Devices (username = cert CN = own 12-hex id): publish only their own uplink topics,
+# read only their own downlink topics. A device cannot read another device's feedback
+# or spoof another device's events.
+pattern write sentinel/%u/event
+pattern write sentinel/%u/status
+pattern write sentinel/%u/clip/+
+pattern read  sentinel/%u/feedback
+pattern read  sentinel/%u/ota

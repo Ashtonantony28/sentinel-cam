@@ -1,0 +1,5 @@
+-r requirements.txt
+pytest>=8
+httpx>=0.27
+moto[s3]>=5.0
+amqtt>=0.11
