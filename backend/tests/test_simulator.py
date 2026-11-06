@@ -81,3 +81,19 @@ def test_simulated_devices_receive_per_kind_ota_and_feedback(env):
     st = run(env.bus, None, n_devices=1, events_per_device=5, seed=5, mqtt_clips=True)
     assert {k: v["version"] for k, v in st["ota_notices"][dev].items()} == \
         {"fw_n6": "1.3.0", "model": "0.4.0", "fw_c6": "2.0.1"}
+
+
+def test_simulator_status_json_and_faults(env):
+    from sentinel_backend.schemas import StatusMsg
+    from sentinel_backend.simulator import DeviceSim
+    import random
+
+    st = run(env.bus, None, n_devices=4, events_per_device=150, seed=11, mqtt_clips=True)
+    assert env.ingest.stats.rejected == 0 and st["faults"] > 0
+    faults = env.db.status_log(state="fault", limit=1000)
+    assert len(faults) == st["faults"] and all(f["reason"] for f in faults)
+    # Non-battery faults recover, so every device ends online.
+    assert all(d["status"] == "online" for d in env.db.devices())
+    d = DeviceSim("a4cf12aaaaaa", random.Random(0), 0, soc0=0.05)
+    assert d.maybe_fault() == "LOW_BATTERY"
+    assert StatusMsg.model_validate_json(d.status("fault", "LOW_BATTERY")).state == "fault"

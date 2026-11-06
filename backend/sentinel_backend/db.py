@@ -17,8 +17,20 @@ CREATE TABLE IF NOT EXISTS devices (
     last_seen_ms INTEGER NOT NULL,
     status TEXT,
     fw TEXT, model TEXT,
-    battery_mv INTEGER, soc_pct INTEGER
+    battery_mv INTEGER, soc_pct INTEGER,
+    status_reason TEXT, status_ts INTEGER
 );
+CREATE TABLE IF NOT EXISTS status_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    dev TEXT NOT NULL,
+    state TEXT NOT NULL,
+    reason TEXT,
+    ts INTEGER,
+    battery_mv INTEGER,
+    lwt INTEGER NOT NULL DEFAULT 0,
+    received_ms INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS status_log_dev ON status_log(dev, id);
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     dev TEXT NOT NULL,
@@ -84,6 +96,11 @@ class Database:
         self.lock = threading.RLock()
         with self.lock:
             self.conn.executescript(SCHEMA)
+            # Migrate databases created before the status-JSON contract change.
+            cols = {r[1] for r in self.conn.execute("PRAGMA table_info(devices)")}
+            for col, typ in (("status_reason", "TEXT"), ("status_ts", "INTEGER")):
+                if col not in cols:
+                    self.conn.execute(f"ALTER TABLE devices ADD COLUMN {col} {typ}")
 
     def _x(self, sql: str, args: tuple = ()) -> sqlite3.Cursor:
         with self.lock:
@@ -99,9 +116,37 @@ class Database:
                 (dev, t, t),
             )
             for k, v in fields.items():
-                if k not in ("status", "fw", "model", "battery_mv", "soc_pct"):
+                if k not in ("status", "fw", "model", "battery_mv", "soc_pct", "status_reason", "status_ts"):
                     raise KeyError(k)
                 self._x(f"UPDATE devices SET {k}=? WHERE dev=?", (v, dev))
+
+    def record_status(self, dev: str, state: str, reason: Optional[str], ts: Optional[int],
+                      battery_mv: Optional[int], lwt: bool = False) -> bool:
+        """Log a status and update the device. Returns False (ignored) for a JSON status whose
+        `ts` is older than the one already stored, e.g. a stale retained message replayed on
+        reconnect. The plain-text LWT carries no ts and always applies."""
+        with self.lock:
+            cur = self.device(dev)
+            if ts is not None and cur and cur.get("status_ts") is not None and ts < cur["status_ts"]:
+                return False
+            self._x("INSERT INTO status_log(dev, state, reason, ts, battery_mv, lwt, received_ms) VALUES(?,?,?,?,?,?,?)",
+                    (dev, state, reason, ts, battery_mv, int(lwt), now_ms()))
+            fields: dict[str, Any] = {"status": state, "status_reason": reason}
+            if ts is not None:
+                fields["status_ts"] = ts
+            if battery_mv is not None:
+                fields["battery_mv"] = battery_mv
+            self.touch_device(dev, **fields)
+            return True
+
+    def status_log(self, dev: Optional[str] = None, state: Optional[str] = None, limit: int = 100) -> list[dict]:
+        where, args = [], []
+        if dev:
+            where.append("dev=?"); args.append(dev)
+        if state:
+            where.append("state=?"); args.append(state)
+        sql = "SELECT * FROM status_log" + (" WHERE " + " AND ".join(where) if where else "") + " ORDER BY id DESC LIMIT ?"
+        return [dict(r) for r in self._x(sql, tuple(args) + (limit,))]
 
     def devices(self) -> list[dict]:
         return [dict(r) for r in self._x("SELECT * FROM devices ORDER BY dev")]

@@ -123,6 +123,25 @@ class DeviceSim:
         }
         return ev, clip
 
+    def status(self, state: str = "online", reason: Optional[str] = None) -> bytes:
+        """INTERFACES §3 status JSON."""
+        return json.dumps({"state": state, "reason": reason, "ts": self.t_ms,
+                           "battery_mv": soc_to_mv(self.soc())}, separators=(",", ":")).encode()
+
+    def maybe_fault(self) -> Optional[str]:
+        """Brainstem-side fault after an event, when it refuses or loses the N6: low battery
+        below 10% SoC, otherwise rare brownouts / power faults / job timeouts."""
+        if self.soc() < 0.10:
+            return "LOW_BATTERY"
+        r = self.rng.random()
+        if r < 0.004:
+            return "BROWNOUT"
+        if r < 0.007:
+            return "POWER_FAULT"
+        if r < 0.015:
+            return "JOB_TIMEOUT"
+        return None
+
     def _clip(self) -> bytes:
         # Stand-in for an H.264 MP4: an ftyp box + random payload of realistic-ish size.
         n = self.rng.randint(2_000, 12_000)
@@ -162,15 +181,16 @@ def run(
     dup_rate: float = 0.0,
     mqtt_clips: bool = False,
     chunk_size: int = 4096,
+    faults: bool = True,
 ) -> dict:
     """Publish a full simulated session. Clips go first (HTTP PUT preferred), then the event."""
     devices = make_devices(n_devices, seed)
     for d in devices:
         d.subscribe(bus)
     rng = random.Random(seed + 7)
-    stats = {"events": 0, "clips": 0, "dups": 0, "upload_failures": 0}
+    stats = {"events": 0, "clips": 0, "dups": 0, "upload_failures": 0, "faults": 0}
     for d in devices:
-        bus.publish(f"sentinel/{d.dev}/status", b"online", qos=1, retain=True)
+        bus.publish(f"sentinel/{d.dev}/status", d.status("online"), qos=1, retain=True)
     for d, ev, clip in stream(devices, events_per_device):
         if clip is not None:
             if mqtt_clips or uploader is None:
@@ -191,6 +211,14 @@ def run(
         if dup_rate and rng.random() < dup_rate:  # QoS 1 redelivery
             bus.publish(f"sentinel/{d.dev}/event", payload, qos=1)
             stats["dups"] += 1
+        reason = d.maybe_fault() if faults else None
+        if reason:
+            # Fault, then recovery to online on the next tick (both retained).
+            bus.publish(f"sentinel/{d.dev}/status", d.status("fault", reason), qos=1, retain=True)
+            stats["faults"] += 1
+            if reason != "LOW_BATTERY":
+                d.t_ms += 1
+                bus.publish(f"sentinel/{d.dev}/status", d.status("online"), qos=1, retain=True)
     stats["devices"] = [d.dev for d in devices]
     stats["ota_notices"] = {d.dev: dict(d.ota_notices) for d in devices}
     stats["feedback"] = {d.dev: list(d.feedback) for d in devices}

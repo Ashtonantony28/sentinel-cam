@@ -14,7 +14,7 @@ from .auth import Authenticator, device_dep, user_dep
 from .bus import Bus
 from .db import Database
 from .ingest import Ingest
-from .schemas import OTA_KINDS, Action, FeedbackIn, FeedbackMsg, OtaIn, OtaKind, OtaNotice, ota_topic, valid_clip_id, valid_dev
+from .schemas import OTA_KINDS, Action, FeedbackIn, FeedbackMsg, OtaIn, OtaKind, OtaNotice, StatusState, ota_topic, valid_clip_id, valid_dev
 from .storage import ClipNotFound, ClipStore, clip_key, sha256_hex
 
 STATIC = Path(__file__).parent / "static"
@@ -59,7 +59,18 @@ def create_app(settings: Settings, db: Database, store: ClipStore, bus: Bus, ing
         out = db.devices()
         for d in out:
             d["ota"] = db.ota(d["dev"])
+            d["recent_faults"] = db.status_log(dev=d["dev"], state="fault", limit=5)
         return out
+
+    @app.get("/api/status-log", dependencies=user)
+    def status_log(
+        dev: Optional[str] = None,
+        state: Optional[StatusState] = None,
+        limit: int = Query(default=100, ge=1, le=1000),
+    ) -> list[dict]:
+        if dev is not None and not valid_dev(dev):
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "bad dev")
+        return db.status_log(dev=dev, state=state, limit=limit)
 
     @app.get("/api/events", dependencies=user)
     def list_events(
@@ -89,7 +100,8 @@ def create_app(settings: Settings, db: Database, store: ClipStore, bus: Bus, ing
     def stats() -> dict:
         s = app.state.ingest.stats
         return {"events": s.events, "duplicates": s.duplicates, "rejected": s.rejected,
-                "status": s.status, "clip_chunks": s.clip_chunks}
+                "status": s.status, "faults": s.faults, "stale_status": s.stale_status,
+                "clip_chunks": s.clip_chunks}
 
     # ------------------------------------------------------------ clips
     @app.put("/api/clips/{clip_id}", status_code=status.HTTP_201_CREATED)

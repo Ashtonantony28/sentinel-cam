@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, field_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, field_validator, model_validator
 
 DEV_RE = re.compile(r"^[0-9a-fA-F]{12}$")
 CLIP_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
@@ -146,6 +146,29 @@ class OtaNotice(_Strict):
         if not (v.startswith("https://") or v.startswith("http://")):
             raise ValueError("url must be http(s)")
         return v
+
+
+StatusState = Literal["online", "offline", "fault"]
+FaultReason = Literal["LOW_BATTERY", "BROWNOUT", "POWER_FAULT", "JOB_TIMEOUT"]
+
+
+class StatusMsg(_Strict):
+    """`sentinel/{dev}/status` JSON payload (device -> backend, retained).
+
+    The broker's LWT may still be the plain string `offline` (handled by ingest).
+    Tightening: `state == "fault"` requires a non-null `reason`.
+    """
+
+    state: StatusState
+    reason: Optional[FaultReason]
+    ts: StrictInt = Field(ge=0)
+    battery_mv: StrictInt = Field(ge=0)
+
+    @model_validator(mode="after")
+    def _fault_has_reason(self):
+        if self.state == "fault" and self.reason is None:
+            raise ValueError("state 'fault' requires a reason")
+        return self
 
 
 class ClipChunkHeader(_Strict):

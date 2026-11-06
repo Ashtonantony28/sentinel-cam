@@ -105,10 +105,14 @@ def test_full_flow_over_real_broker(broker_port, tmp_path):
                      will=(f"sentinel/{DEV}/status", b"offline", True))
     feedback = []
     device.subscribe(f"sentinel/{DEV}/feedback", lambda t, p: feedback.append(json.loads(p)), qos=1)
-    device.publish(f"sentinel/{DEV}/status", b"online", qos=1, retain=True)
+    status = lambda state, reason=None, ts=1: json.dumps(  # noqa: E731
+        {"state": state, "reason": reason, "ts": ts, "battery_mv": 3900}).encode()
+    device.publish(f"sentinel/{DEV}/status", status("online"), qos=1, retain=True)
     device.publish(f"sentinel/{DEV}/event", json.dumps(make_event(ts=77)).encode(), qos=1)
     assert _until(lambda: db.count_events() == 1), "event not ingested over broker"
     assert _until(lambda: (db.device(DEV) or {}).get("status") == "online")
+    device.publish(f"sentinel/{DEV}/status", status("fault", "BROWNOUT", ts=2), qos=1, retain=True)
+    assert _until(lambda: db.device(DEV)["status_reason"] == "BROWNOUT")
 
     r = client.post(f"/api/devices/{DEV}/feedback", json={"event_ts": 77, "label": "false_alarm"})
     assert r.status_code == 201

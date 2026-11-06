@@ -4,7 +4,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from sentinel_backend.schemas import EventMsg, FeedbackMsg, OtaNotice, pack_semver
+from sentinel_backend.schemas import EventMsg, FeedbackMsg, OtaNotice, StatusMsg, ota_topic, pack_semver
 from conftest import make_event
 
 CONTRACT_EXAMPLE = (
@@ -86,3 +86,18 @@ def test_ota_shape():
 def test_pack_semver():
     assert pack_semver("1.2.3") == 0x010203
     assert pack_semver("300.0.1") == (300 << 16) | 1
+
+
+def test_status_shape():
+    m = StatusMsg.model_validate_json('{"state":"fault","reason":"JOB_TIMEOUT","ts":5,"battery_mv":3400}')
+    assert m.reason == "JOB_TIMEOUT"
+    StatusMsg.model_validate_json('{"state":"online","reason":null,"ts":5,"battery_mv":3400}')
+    for bad in ['{"state":"fault","reason":null,"ts":5,"battery_mv":1}', '{"state":"online","ts":5,"battery_mv":1}']:
+        with pytest.raises(ValidationError):
+            StatusMsg.model_validate_json(bad)
+
+
+def test_ota_topic():
+    assert ota_topic("a4cf12000001", "fw_c6") == "sentinel/a4cf12000001/ota/fw_c6"
+    with pytest.raises(ValueError):
+        ota_topic("a4cf12000001", "fw")

@@ -17,7 +17,7 @@ def pub(env, **kw):
 @pytest.mark.parametrize("method,path", [
     ("get", "/api/events"), ("get", "/api/devices"), ("get", "/api/events/1"), ("get", "/api/clips/x"),
     ("post", f"/api/devices/{DEV}/feedback"), ("post", f"/api/devices/{DEV}/ota"), ("get", "/api/rejects"),
-    ("delete", f"/api/devices/{DEV}/ota"), ("delete", f"/api/devices/{DEV}/ota/model"), ("get", "/api/stats"),
+    ("delete", f"/api/devices/{DEV}/ota"), ("delete", f"/api/devices/{DEV}/ota/model"), ("get", "/api/stats"), ("get", "/api/status-log"),
 ])
 def test_user_endpoints_require_token(env, method, path):
     env.client.headers.pop("Authorization")
@@ -171,7 +171,7 @@ def test_sleeping_device_sees_all_three_kinds(env):
     for kind, ver in [("fw_n6", "1.3.0"), ("fw_c6", "2.0.1"), ("model", "0.4.0"), ("model", "0.5.0")]:
         assert env.client.post(f"/api/devices/{DEV}/ota", json=ota(kind, ver)).status_code == 201
     seen = {}
-    env.bus.subscribe(f"sentinel/{DEV}/ota/+", lambda t, p: seen.__setitem__(t.rsplit("/", 1)[1], json.loads(p)))
+    env.bus.subscribe(f"sentinel/{DEV}/ota/+", lambda t, p: p and seen.__setitem__(t.rsplit("/", 1)[1], json.loads(p)))
     assert {k: v["version"] for k, v in seen.items()} == {"fw_n6": "1.3.0", "fw_c6": "2.0.1", "model": "0.5.0"}
     assert all(v["kind"] == k for k, v in seen.items())
     assert [o["kind"] for o in env.db.ota(DEV)] == ["fw_c6", "fw_n6", "model"]
@@ -193,3 +193,19 @@ def test_ota_clear_bad_kind(env):
 def test_ota_validation(env, patch):
     assert env.client.post(f"/api/devices/{DEV}/ota", json={**OTA, **patch}).status_code == 422
     assert env.bus.messages(f"sentinel/{DEV}/ota/#") == []
+
+
+def test_device_list_and_status_log_surface_faults(env):
+    sp = lambda **k: json.dumps({"state": "online", "reason": None, "ts": 1, "battery_mv": 3900, **k}).encode()  # noqa: E731
+    env.bus.publish(f"sentinel/{DEV}/status", sp(state="fault", reason="POWER_FAULT", ts=10, battery_mv=3300), retain=True)
+    env.bus.publish(f"sentinel/{DEV2}/status", sp(ts=11), retain=True)
+    devs = {d["dev"]: d for d in env.client.get("/api/devices").json()}
+    assert devs[DEV]["status"] == "fault" and devs[DEV]["status_reason"] == "POWER_FAULT"
+    assert devs[DEV]["recent_faults"][0]["reason"] == "POWER_FAULT"
+    assert devs[DEV2]["status"] == "online" and devs[DEV2]["recent_faults"] == []
+    log = env.client.get("/api/status-log?state=fault").json()
+    assert [(r["dev"], r["reason"]) for r in log] == [(DEV, "POWER_FAULT")]
+    assert len(env.client.get(f"/api/status-log?dev={DEV2}").json()) == 1
+    assert env.client.get("/api/status-log?state=bogus").status_code == 422
+    assert env.client.get("/api/stats").json()["faults"] == 1
+    assert "st-fault" in env.client.get("/").text  # dashboard renders fault state

@@ -69,15 +69,55 @@ def test_bad_topic_rejected(env):
     assert env.db.count_events() == 0 and len(env.db.rejects()) == 2
 
 
-def test_status_and_lwt(env):
-    env.bus.publish(f"sentinel/{DEV}/status", b"online", retain=True)
-    assert env.db.device(DEV)["status"] == "online"
-    env.bus.publish(f"sentinel/{DEV}/status", b"offline", retain=True)  # LWT
-    assert env.db.device(DEV)["status"] == "offline"
-    env.bus.publish(f"sentinel/{DEV}/status", b'{"state":"online","rssi":-60}', retain=True)
-    assert env.db.device(DEV)["status"] == "online"
-    env.bus.publish(f"sentinel/{DEV}/status", b"\x00garbage", retain=True)
-    assert env.db.rejects()[0]["reason"] == "bad status payload"
+def st(state="online", reason=None, ts=1000, battery_mv=3900, **kw):
+    return json.dumps({"state": state, "reason": reason, "ts": ts, "battery_mv": battery_mv, **kw}).encode()
+
+
+def test_status_json_and_lwt(env):
+    env.bus.publish(f"sentinel/{DEV}/status", st(ts=1000), retain=True)
+    d = env.db.device(DEV)
+    assert (d["status"], d["status_reason"], d["status_ts"], d["battery_mv"]) == ("online", None, 1000, 3900)
+    env.bus.publish(f"sentinel/{DEV}/status", b"offline", retain=True)  # plain-text LWT still allowed
+    d = env.db.device(DEV)
+    assert d["status"] == "offline" and d["status_reason"] is None
+    assert env.db.status_log(DEV)[0]["lwt"] == 1
+
+
+@pytest.mark.parametrize("reason", ["LOW_BATTERY", "BROWNOUT", "POWER_FAULT", "JOB_TIMEOUT"])
+def test_fault_status_stored_with_reason(env, reason):
+    env.bus.publish(f"sentinel/{DEV}/status", st("fault", reason, ts=2000, battery_mv=3310), retain=True)
+    d = env.db.device(DEV)
+    assert (d["status"], d["status_reason"], d["battery_mv"]) == ("fault", reason, 3310)
+    faults = env.db.status_log(DEV, state="fault")
+    assert len(faults) == 1 and faults[0]["reason"] == reason and faults[0]["ts"] == 2000
+    assert env.ingest.stats.faults == 1
+    # Recovery clears the device's current reason but keeps the fault history.
+    env.bus.publish(f"sentinel/{DEV}/status", st(ts=3000), retain=True)
+    d = env.db.device(DEV)
+    assert d["status"] == "online" and d["status_reason"] is None
+    assert len(env.db.status_log(DEV, state="fault")) == 1
+
+
+def test_stale_retained_status_ignored(env):
+    env.bus.publish(f"sentinel/{DEV}/status", st("fault", "BROWNOUT", ts=5000), retain=True)
+    env.bus.publish(f"sentinel/{DEV}/status", st(ts=4000), retain=True)  # older, replayed
+    assert env.db.device(DEV)["status"] == "fault" and env.ingest.stats.stale_status == 1
+
+
+@pytest.mark.parametrize("payload", [
+    b"online",                                   # plain text is no longer valid (only the LWT)
+    b"\x00garbage",
+    st(state="sleeping"),
+    st("fault", None),                           # fault requires a reason
+    st(reason="OVERHEAT"),
+    st(ts=1.5), st(ts="1000"), st(ts=-1), st(battery_mv=None), st(battery_mv=True),
+    st(rssi=-60),                                # unknown key
+    b'{"state":"online","reason":null,"ts":1}',  # missing battery_mv
+])
+def test_bad_status_rejected(env, payload):
+    env.bus.publish(f"sentinel/{DEV}/status", payload, retain=True)
+    assert env.db.device(DEV) is None
+    assert env.db.rejects()[0]["reason"].startswith("bad status payload")
 
 
 def chunks(data, clip_id, size=1000):

@@ -16,7 +16,7 @@ from pydantic import ValidationError
 
 from .bus import Bus
 from .db import Database
-from .schemas import ClipChunkHeader, EventMsg, valid_clip_id, valid_dev
+from .schemas import ClipChunkHeader, EventMsg, StatusMsg, valid_clip_id, valid_dev
 from .storage import ClipStore, clip_key, sha256_hex
 
 log = logging.getLogger(__name__)
@@ -30,6 +30,8 @@ class IngestStats:
     duplicates: int = 0
     rejected: int = 0
     status: int = 0
+    faults: int = 0
+    stale_status: int = 0
     clip_chunks: int = 0
 
 
@@ -107,28 +109,28 @@ class Ingest:
 
     # ---------------------------------------------------------------- status
     def _status(self, topic: str, dev: str, payload: bytes) -> None:
-        """Status is retained and the LWT payload is the literal `offline`.
-
-        The contract does not define the online payload; we accept `online`/`offline`
-        as plain text, or a JSON object with a string "state" field.
-        """
+        """INTERFACES §3: retained JSON `{"state","reason","ts","battery_mv"}`; the broker LWT
+        may be the plain string `offline`. `fault` statuses (brainstem refused or lost the N6)
+        are stored with their reason and surfaced on the device list and dashboard."""
         if payload == b"":
             return  # retained-clear
-        text = payload.decode("utf-8", "replace").strip()
-        state: Optional[str] = None
-        if text in ("online", "offline"):
-            state = text
-        else:
-            try:
-                obj = json.loads(text)
-                if isinstance(obj, dict) and isinstance(obj.get("state"), str):
-                    state = obj["state"][:32]
-            except json.JSONDecodeError:
-                pass
-        if state is None:
-            return self._reject(topic, "bad status payload", payload)
+        if payload.strip() == b"offline":
+            self.stats.status += 1
+            self.db.record_status(dev, "offline", None, None, None, lwt=True)
+            return
+        if len(payload) > MAX_EVENT_BYTES:
+            return self._reject(topic, "payload too large", payload)
+        try:
+            st = StatusMsg.model_validate_json(payload)
+        except ValidationError as e:
+            return self._reject(topic, "bad status payload: " + "; ".join(
+                f"{'.'.join(map(str, err['loc']))}: {err['msg']}" for err in e.errors()), payload)
         self.stats.status += 1
-        self.db.touch_device(dev, status=state)
+        if not self.db.record_status(dev, st.state, st.reason, st.ts, st.battery_mv):
+            self.stats.stale_status += 1
+        elif st.state == "fault":
+            self.stats.faults += 1
+            log.warning("device %s fault: %s (battery %d mV)", dev, st.reason, st.battery_mv)
 
     # ---------------------------------------------------------------- MQTT clip fallback
     def _clip_chunk(self, topic: str, dev: str, clip_id: str, payload: bytes) -> None:

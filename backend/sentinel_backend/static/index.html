@@ -17,6 +17,9 @@
   th { color:var(--muted); font-weight:600; }
   .act-NOTIFY_UNKNOWN_WITH_CLIP, .act-RING { color:var(--warn); font-weight:600; }
   .muted { color:var(--muted); }
+  .st-fault { color:var(--warn); font-weight:600; }
+  .st-offline { color:var(--muted); }
+  h2 { font-size:14px; margin:16px 0 6px; }
   a { color:var(--accent); }
 </style>
 </head>
@@ -30,6 +33,12 @@
   <span id="msg" class="muted"></span>
 </header>
 <main>
+  <h2>Devices</h2>
+  <table>
+    <thead><tr><th>Device</th><th>State</th><th>Reason</th><th>Status time</th><th>Battery</th><th>FW / model</th><th>Recent faults</th></tr></thead>
+    <tbody id="devs"></tbody>
+  </table>
+  <h2>Events</h2>
   <table>
     <thead><tr><th>Time</th><th>Device</th><th>Wake</th><th>Action</th><th>Person</th><th>Faces</th><th>Clip</th><th>Battery</th><th>Energy</th><th>FW / model</th><th>Feedback</th></tr></thead>
     <tbody id="rows"></tbody>
@@ -75,7 +84,16 @@ async function load() {
       <td><button data-fb="false_alarm" data-dev="${esc(e.dev)}" data-ts="${e.ts}">false alarm</button>
           <button data-fb="person" data-dev="${esc(e.dev)}" data-ts="${e.ts}">person</button>
           <button data-fb="known" data-dev="${esc(e.dev)}" data-ts="${e.ts}">known</button></td></tr>`).join("");
-    $("msg").textContent = `${events.length} events`;
+    const devs = await (await api("/api/devices")).json();
+    $("devs").innerHTML = devs.map(d => `<tr>
+      <td>${esc(d.dev)}</td><td class="st-${esc(d.status || "")}">${esc(d.status || "-")}</td>
+      <td class="${d.status === "fault" ? "st-fault" : "muted"}">${esc(d.status_reason || "-")}</td>
+      <td>${d.status_ts ? esc(new Date(d.status_ts).toLocaleString()) : '<span class="muted">-</span>'}</td>
+      <td>${d.soc_pct ?? "-"}% <span class="muted">${d.battery_mv ?? "-"} mV</span></td>
+      <td class="muted">${esc(d.fw || "-")} / ${esc(d.model || "-")}</td>
+      <td>${esc((d.recent_faults || []).map(f => f.reason + " @ " + new Date(f.ts).toLocaleString()).join("; ") || "-")}</td></tr>`).join("");
+    const nf = devs.filter(d => d.status === "fault").length;
+    $("msg").textContent = `${events.length} events, ${devs.length} devices` + (nf ? `, ${nf} in fault` : "");
   } catch (e) { $("msg").textContent = e.message; }
 }
 $("rows").addEventListener("click", (ev) => {
