@@ -3,7 +3,7 @@
 All multi-byte integers are little-endian. Versions are semver `major.minor.patch` packed as `u32 = major<<16 | minor<<8 | patch`.
 
 ## 1. Face embedding and gallery
-- Embedding: 128 dims. Float form is L2-normalized fp32. Device form is int8, `q = round(clamp(x * 127, -127, 127))` (scale 1/127, zero-point 0), then cosine via int32 dot product of int8 vectors divided by the product of their int8 norms.
+- Embedding: 128 dims. Float form is L2-normalized fp32. Device form is int8, `q = round_half_away_from_zero(clamp(x * 127, -127, 127))` (scale 1/127, zero-point 0; C `roundf` semantics, NOT numpy/torch half-to-even; NaN → 0), then cosine via int32 dot product of int8 vectors divided by the product of their int8 norms.
 - Gallery limits: ≤ 16 people, ≤ 20 prototypes per person.
 - Match rule: score(person) = max cosine over that person's prototypes; match if best score ≥ that person's threshold (default 0.55, per-person override) AND best − second-best person ≥ 0.05 margin. Otherwise "unknown".
 - Gallery flash blob: header `{ magic "SGAL", u16 version=1, u16 n_people }`, then per person `{ u16 id, u8 n_protos, u8 reserved, i16 threshold_q15, char name[24], int8 protos[n_protos][128] }`, then CRC32 (IEEE) over everything before it.
@@ -21,7 +21,7 @@ Topics, `{dev}` = device id (12 hex chars from MAC):
 - `sentinel/{dev}/clip/{clip_id}` (device → backend): chunks, header JSON `{"seq":int,"last":bool}` then binary; or HTTP PUT to `/api/clips/{clip_id}` (preferred).
 - `sentinel/{dev}/feedback` (backend → device, QoS 1): `{"v":1,"event_ts":int,"label":"false_alarm|person|known","person_id":int|null}`
 - `sentinel/{dev}/ota/{kind}` (backend → device, retained; `{kind}` ∈ `fw_n6|fw_c6|model`, one retained notice per kind so a sleeping device sees all three; changed 2026-11-06 from a single `ota` topic): `{"v":1,"kind":"fw_n6|fw_c6|model","version":str,"url":str,"size":int,"sha256":hex}`
-- `sentinel/{dev}/status` (device → backend, retained, LWT "offline").
+- `sentinel/{dev}/status` (device → backend, retained, LWT "offline"). JSON `{"state":"online|offline|fault","reason":null|"LOW_BATTERY|BROWNOUT|POWER_FAULT|JOB_TIMEOUT","ts":int_unix_ms,"battery_mv":int}`. The brainstem publishes `fault` when it refuses or loses the N6, since no §3 event exists in that case.
 
 ## 4. OTA image + manifest
 An image is a 256-byte manifest header followed immediately by the payload:
