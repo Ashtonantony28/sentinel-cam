@@ -43,6 +43,9 @@ offset size field
 ```
 The signature covers the manifest; the manifest covers the payload via sha256.
 
+Op-set hash: `sha256("sentinel-opset-v1\n" + sorted unique lower-case ONNX op names, one per line, each ending "\n")`; compatibility = exact equality. `tools/sentinel_sign.py opset` is the reference implementation.
+Security counters are kept per kind (fw_n6, fw_c6, model).
+
 Slot states: `EMPTY`, `PENDING` (written + verified, not yet booted), `TRIAL` (booted once, not confirmed), `CONFIRMED`, `BAD`.
 Boot rule: boot PENDING → mark TRIAL; if a TRIAL slot is found at boot (meaning it didn't confirm), mark BAD and boot the other CONFIRMED slot. App confirms within 60 s of boot after health checks. Reject any image whose security_counter < stored counter; on confirm, stored counter = max(stored, image counter).
 
