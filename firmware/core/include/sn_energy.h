@@ -4,10 +4,11 @@
  * Units: power in mW (or uW for standby), time in ms, energy accumulated in
  * nanojoules (uW * ms = nJ, mW * ms = uJ). Reported energy is in mJ.
  *
- * TODO-measure: every constant in SN_POWER_MODEL_DEFAULT is a placeholder
- * from docs/PLAN.md 4.4 until PPK2 measurements exist (milestone M2). The
- * source of truth will be hardware/power_model/constants.yaml
- * (INTERFACES.md 6); keep these in sync when it lands.
+ * SN_POWER_MODEL_DEFAULT is GENERATED from hardware/power_model/constants.yaml
+ * (the single source of truth, INTERFACES.md 6) into src/sn_power_model_gen.c
+ * by tools/gen_fw_power_model.py; a test fails if the generated file is stale.
+ * The constants are estimates until PPK2 measurements exist (milestone M2):
+ * change constants.yaml and regenerate, never the C file.
  */
 #ifndef SN_ENERGY_H
 #define SN_ENERGY_H
@@ -32,6 +33,7 @@ void     sn_energy_reset(sn_energy_acc_t *acc);
 void     sn_energy_add_mw(sn_energy_acc_t *acc, uint32_t mw, uint32_t ms);
 void     sn_energy_add_uw(sn_energy_acc_t *acc, uint32_t uw, uint32_t ms);
 void     sn_energy_add_nj(sn_energy_acc_t *acc, uint64_t nj);
+void     sn_energy_sub_nj(sn_energy_acc_t *acc, uint64_t nj);  /* saturates at 0 */
 uint32_t sn_energy_mj(const sn_energy_acc_t *acc);  /* rounded, saturating */
 
 /* Energy in mJ of `mw` for `ms` (rounded, saturating). */

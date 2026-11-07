@@ -8,7 +8,8 @@ const sim_latency_t SIM_LATENCY_DEFAULT = {
     .frame_ms        = 66u,
     .face_detect_ms  = 10u,
     .embed_ms        = 15u,
-    .publish_ms      = 300u,
+    .publish_ms      = 150u,   /* = radio.publish_time (constants.yaml); test_pipeline
+                                  * checks uplink_est_mj = active power x this */
 };
 
 static const sim_scene_t k_empty_scene = { .n_frames = 1u, .conf = { 0.0f } };

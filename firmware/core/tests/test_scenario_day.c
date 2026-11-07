@@ -238,7 +238,6 @@ static void day_battery_sag(void)
 
 static void day_energy(void)
 {
-    const sn_power_model_t *pm = &SN_POWER_MODEL_DEFAULT;
     uint64_t standby;
     uint64_t cortex;
     uint64_t total;
@@ -256,20 +255,33 @@ static void day_energy(void)
            (unsigned)sn_energy_mj(&W.bs.energy.cortex_clip_extra),
            (unsigned long long)W.sum_event_mj);
     printf("  average %.3f mW -> %.0f days on 18.5 Wh\n", (double)total / 86400.0, days);
-    /* standby: exactly 1.5 mW for 24 h (less 1 ms) */
-    CHECK_EQ_INT(standby, (uint64_t)pm->standby_uw * 86400u / 1000u);
+    /* standby: exactly standby_uw for 24 h (less 1 ms) */
+    CHECK_EQ_INT(standby, sc_standby_mj(&W, HMS(24, 0, 0) - 1u));
     /* N6 per-event estimates agree with the C6's integration within 5 % */
     CHECK_NEAR((double)W.sum_event_mj, (double)cortex, 0.05 * (double)cortex);
-    /* per-action energy envelopes */
-    for (i = 0u; i < W.n_recs; i++) {
-        const sn_event_record_t *r = &W.recs[i].rec;
-        if (r->has_clip) {
-            CHECK(r->energy_mj >= 12000u);
-            CHECK(r->energy_mj <= 15000u);
-        } else {
-            CHECK(r->energy_mj >= 700u);
-            CHECK(r->energy_mj <= 2000u);
+    /* per-action energy envelopes, derived from the power model: the part of
+     * each event outside the clip is within [0.5, 1.6] x the nominal no-clip
+     * event (fewer frames / shared boot at the low end, faces + embeds at the
+     * high end), and the clip adds exactly clip_mw x clip_ms. */
+    {
+        const uint32_t nom = sc_nominal_event_mj(&W, false);
+        const uint32_t clip = sc_nominal_event_mj(&W, true) - nom;
+        uint32_t lo = UINT32_MAX;
+        uint32_t hi = 0u;
+        for (i = 0u; i < W.n_recs; i++) {
+            const sn_event_record_t *r = &W.recs[i].rec;
+            uint32_t base = r->energy_mj;
+            if (r->has_clip) {
+                CHECK(r->energy_mj > clip);
+                base = r->energy_mj - clip;
+            }
+            lo = (base < lo) ? base : lo;
+            hi = (base > hi) ? base : hi;
+            CHECK(base >= nom / 2u);
+            CHECK(base <= (nom * 16u) / 10u);
         }
+        printf("  per-event energy outside the clip: %u..%u mJ (nominal %u, clip +%u)\n",
+               (unsigned)lo, (unsigned)hi, (unsigned)nom, (unsigned)clip);
     }
     /* plan 4.4 envelope: this busy day still clears the 6-month goal (G1) */
     CHECK(days >= 180.0);
@@ -284,11 +296,32 @@ static void day_records_serialize(void)
         char b[SN_EVENT_JSON_MAX];
         size_t n = sn_event_to_json(&W.recs[i].rec, b, sizeof(b));
         CHECK(n > 0u);
-        CHECK(strncmp(b, "{\"v\":1,\"dev\":\"c6n6a1b2c3d4\"", 27) == 0);
+        CHECK(strncmp(b, "{\"v\":1,\"dev\":\"c6a1b2c3d4e5\"", 27) == 0);
         CHECK(strstr(b, sn_action_name(W.recs[i].rec.action)) != NULL);
+        printf("  EVENT %s\n", b);              /* consumed by tests/integration */
     }
     CHECK_EQ_INT(W.infer.n_publish, W.n_recs + W.n_aborted);
     CHECK_EQ_INT(W.n_aborted, 0u);
+}
+
+/* The brainstem's fault reports become INTERFACES 3 status messages:
+ * 20:15 refused (LOW_BATTERY), 23:00 brown-out during boot (BROWNOUT). */
+static void day_status_json(void)
+{
+    uint32_t i;
+    run_day();
+    CHECK_EQ_INT(W.n_status, 2u);
+    CHECK_EQ_INT(W.status[0].reason, SN_FAULT_LOW_BATTERY);
+    CHECK_EQ_INT(W.status[1].reason, SN_FAULT_BROWNOUT);
+    CHECK_EQ_INT(W.status[0].battery_mv, 3350u);
+    CHECK_NEAR((double)W.status[0].ts_ms, (double)(SC_UNIX_BASE + 1000u + HMS(20, 15, 0)), 1000.0);
+    for (i = 0u; i < W.n_status; i++) {
+        char b[SN_STATUS_JSON_MAX];
+        size_t n = sn_status_to_json(&W.status[i], b, sizeof(b));
+        CHECK(n > 0u);
+        CHECK(strncmp(b, "{\"state\":\"fault\",\"reason\":\"", 27) == 0);
+        printf("  STATUS %s\n", b);             /* consumed by tests/integration */
+    }
 }
 
 int main(int argc, char **argv)
@@ -300,6 +333,7 @@ int main(int argc, char **argv)
     RUN_TEST(day_battery_sag);
     RUN_TEST(day_energy);
     RUN_TEST(day_records_serialize);
+    RUN_TEST(day_status_json);
     RUN_TEST(day_storm_limiter_saves_energy);
     TEST_END();
 }

@@ -20,191 +20,191 @@
     "standby.charger": 7.4e-05,
     "standby.gauge": 1.11e-05,
     "standby.pack_protection": 1.11e-05,
-    "event.person_known": 0.00012293774509803922,
+    "event.person_known": 0.0001222427156862745,
     "clip.person_known": 0.0,
-    "event.person_unknown": 8.195849673202615e-05,
+    "event.person_unknown": 8.149514379084967e-05,
     "clip.person_unknown": 0.0005762091503267974,
-    "event.false_wake": 0.00030816503267973853,
+    "event.false_wake": 0.00030585797385620914,
     "clip.false_wake": 0.0,
     "event.button": 0.0,
     "clip.button": 0.0,
     "periodic.status_publish": 3.235294117647059e-05,
     "self_discharge": 8.953781965743416e-05,
-    "total": 0.0031128647739058
+    "total": 0.0031093993327293294
    },
    "nominal_standby_current_ua": 513.9739427662956,
-   "nominal_life_months": 7.047898698476064,
+   "nominal_life_months": 7.055684339698952,
    "mc": {
     "n": 20000,
-    "mean_months": 6.520857070867106,
-    "p5_months": 4.56280544910373,
-    "p25_months": 5.61610019373236,
-    "median_months": 6.440803417904116,
-    "p75_months": 7.350914047131337,
-    "p95_months": 8.736737032275459,
-    "prob_ge_6_months": 0.6384,
-    "prob_ge_9_months": 0.03355,
+    "mean_months": 6.536540351916058,
+    "p5_months": 4.57110759460998,
+    "p25_months": 5.629806065222116,
+    "median_months": 6.457334842336296,
+    "p75_months": 7.3689846794765215,
+    "p95_months": 8.753597008513221,
+    "prob_ge_6_months": 0.6427,
+    "prob_ge_9_months": 0.03455,
     "prob_ge_12_months": 0.00015
    },
    "plan_rows_w": {
     "standby": 0.0018378565294117646,
-    "person_inference": 0.00020489624183006537,
+    "person_inference": 0.0002037378594771242,
     "clip": 0.0005762091503267974,
-    "false_wakes": 0.00030816503267973853,
+    "false_wakes": 0.00030585797385620914,
     "self_discharge_and_leakage": 0.00018573781965743416,
-    "total": 0.0031128647739058
+    "total": 0.0031093993327293294
    },
    "tornado": [
     {
      "name": "aon_loads.twt_interval",
-     "life_at_low_h": 3945.693543964547,
-     "life_at_high_h": 6969.564085707901,
-     "swing_h": 3023.8705417433534,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 3949.033105852752,
+     "life_at_high_h": 6979.990520200039,
+     "swing_h": 3030.957414347287,
+     "base_h": 5154.177410150084
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "life_at_low_h": 6630.520690874868,
-     "life_at_high_h": 3675.3106618805937,
-     "swing_h": 2955.210028994274,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 6639.956697825775,
+     "life_at_high_h": 3678.2080435927164,
+     "swing_h": 2961.748654233059,
+     "base_h": 5154.177410150084
     },
     {
      "name": "rate.person_unknown (x1/2..x2)",
-     "life_at_low_h": 5751.127638777515,
-     "life_at_high_h": 4256.456027951466,
-     "swing_h": 1494.671610826049,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5757.750277848397,
+     "life_at_high_h": 4260.862812443482,
+     "swing_h": 1496.887465404915,
+     "base_h": 5154.177410150084
     },
     {
      "name": "rate.false_wake (x1/2..x2)",
-     "life_at_low_h": 5414.1205329702725,
-     "life_at_high_h": 4688.436721472962,
-     "swing_h": 725.6838114973107,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5418.315033623876,
+     "life_at_high_h": 4696.297479687307,
+     "swing_h": 722.0175539365691,
+     "base_h": 5154.177410150084
     },
     {
      "name": "cortex.sensor_start_time",
-     "life_at_low_h": 5344.507990334309,
-     "life_at_high_h": 4638.155675032315,
-     "swing_h": 706.3523153019942,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5350.636975743801,
+     "life_at_high_h": 4642.770953930784,
+     "swing_h": 707.8660218130162,
+     "base_h": 5154.177410150084
     },
     {
      "name": "battery.deploy_temp",
-     "life_at_low_h": 4450.680551200327,
-     "life_at_high_h": 5148.679401546365,
-     "swing_h": 697.9988503460381,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 4455.696407794028,
+     "life_at_high_h": 5154.0825412275035,
+     "swing_h": 698.3861334334752,
+     "base_h": 5154.177410150084
     },
     {
      "name": "battery.usable_fraction",
-     "life_at_low_h": 4759.947735791621,
-     "life_at_high_h": 5425.701426231951,
-     "swing_h": 665.7536904403296,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 4765.209464494076,
+     "life_at_high_h": 5431.692194291847,
+     "swing_h": 666.4827297977708,
+     "base_h": 5154.177410150084
     },
     {
      "name": "aon_loads.c6_light_sleep",
-     "life_at_low_h": 5346.782125099856,
-     "life_at_high_h": 4738.450134775119,
-     "swing_h": 608.3319903247366,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5352.916330485828,
+     "life_at_high_h": 4743.267274927767,
+     "swing_h": 609.6490555580613,
+     "base_h": 5154.177410150084
     },
     {
      "name": "cortex.ir_led_power",
-     "life_at_low_h": 5362.93464775821,
-     "life_at_high_h": 4767.240106690032,
-     "swing_h": 595.6945410681783,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5369.1059931414575,
+     "life_at_high_h": 4772.115990943897,
+     "swing_h": 596.9900021975609,
+     "base_h": 5154.177410150084
     },
     {
      "name": "rails.aon_efficiency",
-     "life_at_low_h": 4745.63886785824,
-     "life_at_high_h": 5337.270833385492,
-     "swing_h": 591.6319655272519,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 4750.47064277855,
+     "life_at_high_h": 5343.383221659399,
+     "swing_h": 592.9125788808487,
+     "base_h": 5154.177410150084
     },
     {
      "name": "cortex.clip_time",
-     "life_at_low_h": 5488.264504394259,
-     "life_at_high_h": 4944.419689815289,
-     "swing_h": 543.8448145789707,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5494.727838261637,
+     "life_at_high_h": 4949.664943516661,
+     "swing_h": 545.0628947449759,
+     "base_h": 5154.177410150084
     },
     {
      "name": "cortex.encode_power",
-     "life_at_low_h": 5295.43181376531,
-     "life_at_high_h": 4877.784768762993,
-     "swing_h": 417.6470450023171,
-     "base_h": 5148.489999236765
+     "life_at_low_h": 5301.448693256324,
+     "life_at_high_h": 4882.889523749043,
+     "swing_h": 418.5591695072808,
+     "base_h": 5154.177410150084
     }
    ],
    "spearman": [
     {
      "name": "aon_loads.twt_interval",
-     "spearman": 0.5354834632702086
+     "spearman": 0.5362887333882217
     },
     {
      "name": "rate.person_unknown",
-     "spearman": -0.44728908194622263
+     "spearman": -0.4475627650754068
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "spearman": -0.3835625493814063
+     "spearman": -0.3841919124184797
     },
     {
      "name": "rate.false_wake",
-     "spearman": -0.27955373269188427
+     "spearman": -0.27690145261725363
     },
     {
      "name": "cortex.sensor_start_time",
-     "spearman": -0.16254635062786585
+     "spearman": -0.16288440930371098
     },
     {
      "name": "battery.usable_fraction",
-     "spearman": 0.14651494986928734
+     "spearman": 0.1463573275228933
     },
     {
      "name": "cortex.ir_led_power",
-     "spearman": -0.1393238953698097
+     "spearman": -0.13949769663524422
     },
     {
      "name": "battery.deploy_temp",
-     "spearman": 0.13795146298337865
+     "spearman": 0.13771341965328351
     },
     {
      "name": "aon_loads.c6_light_sleep",
-     "spearman": -0.12812378693930945
+     "spearman": -0.12835055523737637
     },
     {
      "name": "cortex.clip_time",
-     "spearman": -0.11199226435448065
+     "spearman": -0.112129604128324
     },
     {
      "name": "rails.aon_efficiency",
-     "spearman": 0.11069758697324396
+     "spearman": 0.1108167322030418
     },
     {
      "name": "rate.person_known",
-     "spearman": -0.10657920973444801
+     "spearman": -0.10588635609671586
     }
    ],
    "event_energy_j": {
     "person_known": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 0.0
     },
     "person_unknown": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     },
     "false_wake": {
-     "base": 1.3312729411764705,
+     "base": 1.3213064470588234,
      "clip": 0.0
     },
     "button": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     }
    }
@@ -219,191 +219,191 @@
     "standby.charger": 7.4e-05,
     "standby.gauge": 1.11e-05,
     "standby.pack_protection": 1.11e-05,
-    "event.person_known": 0.0001822514705882353,
+    "event.person_known": 0.0001815564411764706,
     "clip.person_known": 0.0,
-    "event.person_unknown": 0.00012150098039215686,
+    "event.person_unknown": 0.0001210376274509804,
     "clip.person_unknown": 0.0005762091503267974,
-    "event.false_wake": 0.00028120424836601304,
+    "event.false_wake": 0.0002788971895424836,
     "clip.false_wake": 0.0,
     "event.button": 0.0,
     "clip.button": 0.0,
     "periodic.checkin": 4.4934640522875815e-05,
     "self_discharge": 8.953781965743416e-05,
-    "total": 0.0014432242510299832
+    "total": 0.0014397588098535126
    },
    "nominal_standby_current_ua": 39.888092209856914,
-   "nominal_life_months": 15.04811741812779,
+   "nominal_life_months": 15.083654711215328,
    "mc": {
     "n": 20000,
-    "mean_months": 11.814299714606255,
-    "p5_months": 7.761483182752157,
-    "p25_months": 9.797486241738856,
-    "median_months": 11.5041350191567,
-    "p75_months": 13.517035589145598,
-    "p95_months": 16.915965983973166,
-    "prob_ge_6_months": 0.99715,
-    "prob_ge_9_months": 0.8491,
-    "prob_ge_12_months": 0.428
+    "mean_months": 11.865110578837452,
+    "p5_months": 7.794202294482264,
+    "p25_months": 9.84030674242839,
+    "median_months": 11.552488334233976,
+    "p75_months": 13.575619312699974,
+    "p95_months": 16.988985781861967,
+    "prob_ge_6_months": 0.99725,
+    "prob_ge_9_months": 0.85225,
+    "prob_ge_12_months": 0.43525
    },
    "plan_rows_w": {
     "standby": 9.63205816993464e-05,
-    "person_inference": 0.00030375245098039215,
+    "person_inference": 0.000302594068627451,
     "clip": 0.0005762091503267974,
-    "false_wakes": 0.00028120424836601304,
+    "false_wakes": 0.0002788971895424836,
     "self_discharge_and_leakage": 0.00018573781965743416,
-    "total": 0.0014432242510299832
+    "total": 0.0014397588098535126
    },
    "tornado": [
     {
      "name": "rate.person_unknown (x1/2..x2)",
-     "life_at_low_h": 14410.399784684916,
-     "life_at_high_h": 7455.955237515143,
-     "swing_h": 6954.444547169773,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 14452.051297470945,
+     "life_at_high_h": 7469.487493553876,
+     "swing_h": 6982.563803917069,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.sensor_start_time",
-     "life_at_low_h": 11926.608501635155,
-     "life_at_high_h": 8901.460880457733,
-     "swing_h": 3025.1476211774225,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11957.173252192239,
+     "life_at_high_h": 8918.475697797836,
+     "swing_h": 3038.6975543944027,
+     "base_h": 11018.609766542797
     },
     {
      "name": "rate.false_wake (x1/2..x2)",
-     "life_at_low_h": 12154.494272139626,
-     "life_at_high_h": 9228.37459886267,
-     "swing_h": 2926.119673276955,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 12175.654351778867,
+     "life_at_high_h": 9258.879133957103,
+     "swing_h": 2916.7752178217634,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.ir_led_power",
-     "life_at_low_h": 12018.762256248374,
-     "life_at_high_h": 9389.394086247823,
-     "swing_h": 2629.368170000551,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 12049.801777741208,
+     "life_at_high_h": 9408.327344430614,
+     "swing_h": 2641.4744333105937,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.clip_time",
-     "life_at_low_h": 12667.025493128474,
-     "life_at_high_h": 10102.400561412907,
-     "swing_h": 2564.624931715567,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 12701.508515082169,
+     "life_at_high_h": 10124.32184079729,
+     "swing_h": 2577.186674284878,
+     "base_h": 11018.609766542797
     },
     {
      "name": "rate.person_known (x1/2..x2)",
-     "life_at_low_h": 11718.651966833493,
-     "life_at_high_h": 9780.760612476006,
-     "swing_h": 1937.8913543574872,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11745.193165212286,
+     "life_at_high_h": 9805.437985275525,
+     "swing_h": 1939.7551799367611,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.encode_power",
-     "life_at_low_h": 11684.948172127108,
-     "life_at_high_h": 9828.08071684813,
-     "swing_h": 1856.867455278978,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11714.285324649009,
+     "life_at_high_h": 9848.826439577511,
+     "swing_h": 1865.4588850714972,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.night_fraction",
-     "life_at_low_h": 11860.600594104868,
-     "life_at_high_h": 10243.068845482729,
-     "swing_h": 1617.5317486221393,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11890.827530461305,
+     "life_at_high_h": 10265.605530453735,
+     "swing_h": 1625.2220000075704,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.reject_pipeline_time",
-     "life_at_low_h": 11384.676028712274,
-     "life_at_high_h": 9860.80798539269,
-     "swing_h": 1523.868043319584,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11412.52298364885,
+     "life_at_high_h": 9881.692250463064,
+     "swing_h": 1530.8307331857868,
+     "base_h": 11018.609766542797
     },
     {
      "name": "radio.reconnect_time",
-     "life_at_low_h": 11535.339505422466,
-     "life_at_high_h": 10047.283956191292,
-     "swing_h": 1488.0555492311742,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11563.929309526893,
+     "life_at_high_h": 10068.966435467162,
+     "swing_h": 1494.962874059731,
+     "base_h": 11018.609766542797
     },
     {
      "name": "cortex.person_pipeline_time",
-     "life_at_low_h": 11384.676028712274,
-     "life_at_high_h": 9963.394591776845,
-     "swing_h": 1421.2814369354292,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 11412.52298364885,
+     "life_at_high_h": 9984.716124578159,
+     "swing_h": 1427.8068590706916,
+     "base_h": 11018.609766542797
     },
     {
      "name": "battery.usable_fraction",
-     "life_at_low_h": 10170.809039792894,
-     "life_at_high_h": 11578.240066275319,
-     "swing_h": 1407.4310264824253,
-     "base_h": 10992.64977394235
+     "life_at_low_h": 10194.862698999592,
+     "life_at_high_h": 11605.554985910645,
+     "swing_h": 1410.692286911053,
+     "base_h": 11018.609766542797
     }
    ],
    "spearman": [
     {
      "name": "rate.person_unknown",
-     "spearman": -0.6987609895464024
+     "spearman": -0.7002537447196342
     },
     {
      "name": "rate.false_wake",
-     "spearman": -0.37648862869572153
+     "spearman": -0.3730073138935182
     },
     {
      "name": "cortex.sensor_start_time",
-     "spearman": -0.22715191410237975
+     "spearman": -0.22802069897705174
     },
     {
      "name": "rate.person_known",
-     "spearman": -0.21628019349520042
+     "spearman": -0.21564032837160077
     },
     {
      "name": "cortex.ir_led_power",
-     "spearman": -0.2008809720177024
+     "spearman": -0.20147298992968246
     },
     {
      "name": "cortex.clip_time",
-     "spearman": -0.16867426180518563
+     "spearman": -0.16909078868372693
     },
     {
      "name": "cortex.night_fraction",
-     "spearman": -0.1284437253631093
-    },
-    {
-     "name": "battery.usable_fraction",
-     "spearman": 0.11634914334437284
+     "spearman": -0.12869654530724134
     },
     {
      "name": "cortex.person_pipeline_time",
-     "spearman": -0.1160824856557062
+     "spearman": -0.11623760525509401
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.11604953294912382
     },
     {
      "name": "cortex.reject_pipeline_time",
-     "spearman": -0.1155030901762577
+     "spearman": -0.11587133707967832
     },
     {
      "name": "cortex.encode_power",
-     "spearman": -0.1146499680886249
+     "spearman": -0.11519606936399017
     },
     {
      "name": "radio.reconnect_time",
-     "spearman": -0.0942315203850788
+     "spearman": -0.09463758471859395
     }
    ],
    "event_energy_j": {
     "person_known": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 0.0
     },
     "person_unknown": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 12.446117647058824
     },
     "false_wake": {
-     "base": 1.2148023529411764,
+     "base": 1.2048358588235293,
      "clip": 0.0
     },
     "button": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 12.446117647058824
     }
    }
@@ -418,191 +418,191 @@
     "standby.charger": 7.4e-05,
     "standby.gauge": 1.11e-05,
     "standby.pack_protection": 1.11e-05,
-    "event.person_known": 0.00030734436274509804,
+    "event.person_known": 0.0003056067892156863,
     "clip.person_known": 0.0,
-    "event.person_unknown": 0.00020489624183006537,
+    "event.person_unknown": 0.00020373785947712421,
     "clip.person_unknown": 0.0014405228758169937,
-    "event.false_wake": 0.0006163300653594771,
+    "event.false_wake": 0.0006117159477124183,
     "clip.false_wake": 0.0,
-    "event.button": 4.0979248366013074e-05,
+    "event.button": 4.074757189542484e-05,
     "clip.button": 0.0002881045751633987,
     "periodic.status_publish": 3.235294117647059e-05,
     "self_discharge": 8.953781965743416e-05,
-    "total": 0.004921771718350245
+    "total": 0.004914029968350245
    },
    "nominal_standby_current_ua": 513.9739427662956,
-   "nominal_life_months": 4.472052862430734,
+   "nominal_life_months": 4.479058858672871,
    "mc": {
     "n": 20000,
-    "mean_months": 3.9000085060195437,
-    "p5_months": 2.6966228482236647,
-    "p25_months": 3.313510112580106,
-    "median_months": 3.825499277681338,
-    "p75_months": 4.398983643136178,
-    "p95_months": 5.368669624642263,
-    "prob_ge_6_months": 0.0138,
+    "mean_months": 3.91241371856212,
+    "p5_months": 2.703862263684194,
+    "p25_months": 3.3241693688577607,
+    "median_months": 3.838672405666657,
+    "p75_months": 4.41409289649403,
+    "p95_months": 5.388817318639727,
+    "prob_ge_6_months": 0.01435,
     "prob_ge_9_months": 0.0,
     "prob_ge_12_months": 0.0
    },
    "plan_rows_w": {
     "standby": 0.0018378565294117646,
-    "person_inference": 0.0005532198529411764,
+    "person_inference": 0.0005500922205882354,
     "clip": 0.0017286274509803923,
-    "false_wakes": 0.0006163300653594771,
+    "false_wakes": 0.0006117159477124183,
     "self_discharge_and_leakage": 0.00018573781965743416,
-    "total": 0.004921771718350244
+    "total": 0.004914029968350244
    },
    "tornado": [
     {
      "name": "rate.person_unknown (x1/2..x2)",
-     "life_at_low_h": 3918.1144820242416,
-     "life_at_high_h": 2451.758430908144,
-     "swing_h": 1466.3560511160977,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3924.9267813390893,
+     "life_at_high_h": 2455.0716881771914,
+     "swing_h": 1469.855093161898,
+     "base_h": 3271.952496260532
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "life_at_low_h": 3806.7289840391813,
-     "life_at_high_h": 2604.4322145086117,
-     "swing_h": 1202.2967695305697,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3813.6800626000463,
+     "life_at_high_h": 2607.6840158451737,
+     "swing_h": 1205.9960467548726,
+     "base_h": 3271.952496260532
     },
     {
      "name": "aon_loads.twt_interval",
-     "life_at_low_h": 2737.357102471374,
-     "life_at_high_h": 3916.1014309147413,
-     "swing_h": 1178.744328443367,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 2740.949533825953,
+     "life_at_high_h": 3923.458061160579,
+     "swing_h": 1182.5085273346258,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.clip_time",
-     "life_at_low_h": 3703.2582757906,
-     "life_at_high_h": 3028.869352385412,
-     "swing_h": 674.3889234051876,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3709.8362888122087,
+     "life_at_high_h": 3033.2682853812885,
+     "swing_h": 676.5680034309203,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.ir_led_power",
-     "life_at_low_h": 3502.4723412449675,
-     "life_at_high_h": 2879.3971046205947,
-     "swing_h": 623.0752366243728,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3508.3558218989697,
+     "life_at_high_h": 2883.372298060309,
+     "swing_h": 624.9835238386609,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.sensor_start_time",
-     "life_at_low_h": 3445.934821993353,
-     "life_at_high_h": 2826.1696629989324,
-     "swing_h": 619.7651589944207,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3451.629736941578,
+     "life_at_high_h": 2829.9991492704385,
+     "swing_h": 621.6305876711394,
+     "base_h": 3271.952496260532
     },
     {
      "name": "rate.false_wake (x1/2..x2)",
-     "life_at_low_h": 3483.7414639931244,
-     "life_at_high_h": 2905.0789952067184,
-     "swing_h": 578.662468786406,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3487.8255264867157,
+     "life_at_high_h": 2911.542546113158,
+     "swing_h": 576.2829803735576,
+     "base_h": 3271.952496260532
     },
     {
      "name": "battery.deploy_temp",
-     "life_at_low_h": 2803.3887428112457,
-     "life_at_high_h": 3327.722618172665,
-     "swing_h": 524.3338753614194,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 2807.8364771946126,
+     "life_at_high_h": 3332.767275767532,
+     "swing_h": 524.9307985729192,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.encode_power",
-     "life_at_low_h": 3449.0176653983754,
-     "life_at_high_h": 2954.6908985044042,
-     "swing_h": 494.3267668939711,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3454.7227830454804,
+     "life_at_high_h": 2958.8768570888456,
+     "swing_h": 495.8459259566348,
+     "base_h": 3271.952496260532
     },
     {
      "name": "battery.usable_fraction",
-     "life_at_low_h": 3019.555423487886,
-     "life_at_high_h": 3443.3338634067627,
-     "swing_h": 423.77843991887676,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3024.28792786899,
+     "life_at_high_h": 3448.7266095442824,
+     "swing_h": 424.4386816752922,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.night_fraction",
-     "life_at_low_h": 3466.749817457516,
-     "life_at_high_h": 3088.7191085893355,
-     "swing_h": 378.0307088681807,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3472.5137974294867,
+     "life_at_high_h": 3093.2937342157743,
+     "swing_h": 379.22006321371236,
+     "base_h": 3271.952496260532
     },
     {
      "name": "cortex.person_pipeline_time",
-     "life_at_low_h": 3359.662543848282,
-     "life_at_high_h": 3016.7730785739586,
-     "swing_h": 342.88946527432336,
-     "base_h": 3266.834616005651
+     "life_at_low_h": 3365.075649095447,
+     "life_at_high_h": 3021.136920735108,
+     "swing_h": 343.9387283603387,
+     "base_h": 3271.952496260532
     }
    ],
    "spearman": [
     {
      "name": "rate.person_unknown",
-     "spearman": -0.6132136783530341
+     "spearman": -0.6137615343629037
     },
     {
      "name": "rate.false_wake",
-     "spearman": -0.308472418102681
+     "spearman": -0.30582839598257094
     },
     {
      "name": "aon_loads.twt_interval",
-     "spearman": 0.3021778859259447
+     "spearman": 0.30292835829282083
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "spearman": -0.23651652542429127
+     "spearman": -0.2370449771971124
     },
     {
      "name": "cortex.sensor_start_time",
-     "spearman": -0.20357046659592612
+     "spearman": -0.20408930743522324
     },
     {
      "name": "cortex.ir_led_power",
-     "spearman": -0.18172331558230825
+     "spearman": -0.18217795767394487
     },
     {
      "name": "cortex.clip_time",
-     "spearman": -0.17438199011795494
+     "spearman": -0.1747562149713905
     },
     {
      "name": "rate.person_known",
-     "spearman": -0.16617456260543637
+     "spearman": -0.16529021129622548
     },
     {
      "name": "battery.deploy_temp",
-     "spearman": 0.14640155975100386
+     "spearman": 0.1462416467426041
     },
     {
      "name": "battery.usable_fraction",
-     "spearman": 0.14089434535173584
+     "spearman": 0.14068271197120677
     },
     {
      "name": "cortex.encode_power",
-     "spearman": -0.1354464762551162
+     "spearman": -0.13592579658381448
     },
     {
      "name": "cortex.night_fraction",
-     "spearman": -0.11990090946725225
+     "spearman": -0.12002466850056166
     }
    ],
    "event_energy_j": {
     "person_known": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 0.0
     },
     "person_unknown": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     },
     "false_wake": {
-     "base": 1.3312729411764705,
+     "base": 1.3213064470588234,
      "clip": 0.0
     },
     "button": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     }
    }
@@ -617,191 +617,191 @@
     "standby.charger": 7.4e-05,
     "standby.gauge": 1.11e-05,
     "standby.pack_protection": 1.11e-05,
-    "event.person_known": 0.00012150098039215686,
+    "event.person_known": 0.0001210376274509804,
     "clip.person_known": 0.0,
-    "event.person_unknown": 6.075049019607843e-05,
+    "event.person_unknown": 6.05188137254902e-05,
     "clip.person_unknown": 0.0002881045751633987,
-    "event.false_wake": 5.6240849673202616e-05,
+    "event.false_wake": 5.5779437908496725e-05,
     "clip.false_wake": 0.0,
     "event.button": 0.0,
     "clip.button": 0.0,
     "periodic.checkin": 2.2467320261437907e-05,
     "self_discharge": 8.953781965743416e-05,
-    "total": 0.0007861879765201792
+    "total": 0.0007850315353437087
    },
    "nominal_standby_current_ua": 39.888092209856914,
-   "nominal_life_months": 27.196658458874946,
+   "nominal_life_months": 27.235358305747436,
    "mc": {
     "n": 20000,
-    "mean_months": 21.6758030368148,
-    "p5_months": 15.000918249414887,
-    "p25_months": 18.549530353275856,
-    "median_months": 21.30579738622125,
-    "p75_months": 24.40105053710711,
-    "p95_months": 29.54875019659358,
+    "mean_months": 21.732958930971215,
+    "p5_months": 15.027717542841048,
+    "p25_months": 18.59948126487009,
+    "median_months": 21.356068212030003,
+    "p75_months": 24.46676930699973,
+    "p95_months": 29.647731606358064,
     "prob_ge_6_months": 1.0,
     "prob_ge_9_months": 0.9999,
-    "prob_ge_12_months": 0.99645
+    "prob_ge_12_months": 0.99665
    },
    "plan_rows_w": {
     "standby": 7.385326143790848e-05,
-    "person_inference": 0.0001822514705882353,
+    "person_inference": 0.0001815564411764706,
     "clip": 0.0002881045751633987,
-    "false_wakes": 5.6240849673202616e-05,
+    "false_wakes": 5.5779437908496725e-05,
     "self_discharge_and_leakage": 0.00018573781965743416,
-    "total": 0.0007861879765201792
+    "total": 0.0007850315353437087
    },
    "tornado": [
     {
      "name": "rate.person_unknown (x1/2..x2)",
-     "life_at_low_h": 25286.657028846894,
-     "life_at_high_h": 13906.296303918934,
-     "swing_h": 11380.36072492796,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 25327.875518031902,
+     "life_at_high_h": 13922.91836484521,
+     "swing_h": 11404.957153186691,
+     "base_h": 19895.429242348502
     },
     {
      "name": "rate.person_known (x1/2..x2)",
-     "life_at_low_h": 21469.776647621788,
-     "life_at_high_h": 17286.454311603993,
-     "swing_h": 4183.322336017794,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 21496.172564467684,
+     "life_at_high_h": 17316.44187911225,
+     "swing_h": 4179.730685355433,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.clip_time",
-     "life_at_low_h": 22562.183946698762,
-     "life_at_high_h": 18401.77917567696,
-     "swing_h": 4160.404771021804,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 22598.651283000174,
+     "life_at_high_h": 18426.030305790493,
+     "swing_h": 4172.620977209681,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.ir_led_power",
-     "life_at_low_h": 21286.95255457922,
-     "life_at_high_h": 17528.882183632268,
-     "swing_h": 3758.0703709469526,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 21319.411102127775,
+     "life_at_high_h": 17550.885778885175,
+     "swing_h": 3768.5253232426003,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.sensor_start_time",
-     "life_at_low_h": 20850.82126175511,
-     "life_at_high_h": 17403.99640132316,
-     "swing_h": 3446.8248604319524,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 20881.96242715782,
+     "life_at_high_h": 17425.687387083894,
+     "swing_h": 3456.275040073928,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.encode_power",
-     "life_at_low_h": 20990.99501015141,
-     "life_at_high_h": 17945.5833300479,
-     "swing_h": 3045.4116801035125,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 21022.55660508543,
+     "life_at_high_h": 17968.646198572493,
+     "swing_h": 3053.910406512936,
+     "base_h": 19895.429242348502
     },
     {
      "name": "radio.reconnect_time",
-     "life_at_low_h": 20881.73143339721,
-     "life_at_high_h": 18107.586693198748,
-     "swing_h": 2774.1447401984624,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 20912.96506644816,
+     "life_at_high_h": 18131.068112752797,
+     "swing_h": 2781.8969536953628,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.person_pipeline_time",
-     "life_at_low_h": 20637.78229430547,
-     "life_at_high_h": 17865.809006364536,
-     "swing_h": 2771.973287940935,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 20668.289888218016,
+     "life_at_high_h": 17888.667155197072,
+     "swing_h": 2779.622733020944,
+     "base_h": 19895.429242348502
     },
     {
      "name": "battery.usable_fraction",
-     "life_at_low_h": 18403.12958826167,
-     "life_at_high_h": 20908.265813926748,
-     "swing_h": 2505.136225665079,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 18429.384575074648,
+     "life_at_high_h": 20937.962563087684,
+     "swing_h": 2508.577988013036,
+     "base_h": 19895.429242348502
     },
     {
      "name": "cortex.night_fraction",
-     "life_at_low_h": 21071.82622500996,
-     "life_at_high_h": 18792.78366407458,
-     "swing_h": 2279.0425609353806,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 21103.63154414651,
+     "life_at_high_h": 18818.077036705658,
+     "swing_h": 2285.554507440851,
+     "base_h": 19895.429242348502
     },
     {
      "name": "battery.self_discharge",
-     "life_at_low_h": 21023.635875493568,
-     "life_at_high_h": 18831.28014512285,
-     "swing_h": 2192.3557303707166,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 21055.29577692986,
+     "life_at_high_h": 18856.677319416383,
+     "swing_h": 2198.6184575134757,
+     "base_h": 19895.429242348502
     },
     {
      "name": "rate.false_wake (x1/2..x2)",
-     "life_at_low_h": 20578.178339306385,
-     "life_at_high_h": 18582.995836239264,
-     "swing_h": 1995.1825030671207,
-     "base_h": 19867.159004208148
+     "life_at_low_h": 20602.451676645796,
+     "life_at_high_h": 18617.613329593223,
+     "swing_h": 1984.8383470525732,
+     "base_h": 19895.429242348502
     }
    ],
    "spearman": [
     {
      "name": "rate.person_unknown",
-     "spearman": -0.7498381353445952
+     "spearman": -0.7504513512791282
     },
     {
      "name": "rate.person_known",
-     "spearman": -0.32686393722865975
+     "spearman": -0.3255870667359676
     },
     {
      "name": "cortex.ir_led_power",
-     "spearman": -0.17870410359576022
+     "spearman": -0.1790820475837051
     },
     {
      "name": "cortex.clip_time",
-     "spearman": -0.17313723417684304
+     "spearman": -0.173374007717935
     },
     {
      "name": "cortex.sensor_start_time",
-     "spearman": -0.16560771822451925
+     "spearman": -0.16596311370990774
     },
     {
      "name": "rate.false_wake",
-     "spearman": -0.16281541486703852
+     "spearman": -0.16120141950250352
     },
     {
      "name": "cortex.person_pipeline_time",
-     "spearman": -0.13499515712098786
+     "spearman": -0.13512396043980987
     },
     {
      "name": "cortex.night_fraction",
-     "spearman": -0.12410094408575234
+     "spearman": -0.1241858878124647
     },
     {
      "name": "cortex.encode_power",
-     "spearman": -0.12239202461098003
-    },
-    {
-     "name": "battery.usable_fraction",
-     "spearman": 0.12105271050563175
+     "spearman": -0.12276086915640215
     },
     {
      "name": "radio.reconnect_time",
-     "spearman": -0.12094242990835606
+     "spearman": -0.12120276378150688
+    },
+    {
+     "name": "battery.usable_fraction",
+     "spearman": 0.1208520502971301
     },
     {
      "name": "battery.self_discharge",
-     "spearman": -0.1075190472482976
+     "spearman": -0.10780114518550284
     }
    ],
    "event_energy_j": {
     "person_known": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 0.0
     },
     "person_unknown": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 12.446117647058824
     },
     "false_wake": {
-     "base": 1.2148023529411764,
+     "base": 1.2048358588235293,
      "clip": 0.0
     },
     "button": {
-     "base": 2.6244211764705883,
+     "base": 2.6144127529411767,
      "clip": 12.446117647058824
     }
    }
@@ -816,191 +816,191 @@
     "standby.charger": 7.4e-05,
     "standby.gauge": 1.11e-05,
     "standby.pack_protection": 1.11e-05,
-    "event.person_known": 0.00012293774509803922,
+    "event.person_known": 0.0001222427156862745,
     "clip.person_known": 0.0,
-    "event.person_unknown": 8.195849673202615e-05,
+    "event.person_unknown": 8.149514379084967e-05,
     "clip.person_unknown": 0.0005762091503267974,
-    "event.false_wake": 0.00015408251633986926,
+    "event.false_wake": 0.00015292898692810457,
     "clip.false_wake": 0.0,
     "event.button": 0.0,
     "clip.button": 0.0,
     "periodic.status_publish": 3.235294117647059e-05,
     "self_discharge": 8.953781965743416e-05,
-    "total": 0.004123488139918872
+    "total": 0.004121176228154166
    },
    "nominal_standby_current_ua": 828.7593163751986,
-   "nominal_life_months": 5.3320462005114795,
+   "nominal_life_months": 5.3350174427597095,
    "mc": {
     "n": 20000,
-    "mean_months": 4.63609408471136,
-    "p5_months": 3.3440434231962612,
-    "p25_months": 3.991672640546331,
-    "median_months": 4.549315916351814,
-    "p75_months": 5.181215130204603,
-    "p95_months": 6.232699203952567,
-    "prob_ge_6_months": 0.0751,
+    "mean_months": 4.641475818171553,
+    "p5_months": 3.3474703454387718,
+    "p25_months": 3.995737291029312,
+    "median_months": 4.555265678853969,
+    "p75_months": 5.189457336602771,
+    "p95_months": 6.241670416099608,
+    "prob_ge_6_months": 0.07575,
     "prob_ge_9_months": 0.0,
     "prob_ge_12_months": 0.0
    },
    "plan_rows_w": {
     "standby": 0.003002562411764706,
-    "person_inference": 0.00020489624183006537,
+    "person_inference": 0.0002037378594771242,
     "clip": 0.0005762091503267974,
-    "false_wakes": 0.00015408251633986926,
+    "false_wakes": 0.00015292898692810457,
     "self_discharge_and_leakage": 0.00018573781965743416,
-    "total": 0.004123488139918872
+    "total": 0.004121176228154166
    },
    "tornado": [
     {
      "name": "aon_loads.radar_populated",
-     "life_at_low_h": 4791.261651362628,
-     "life_at_high_h": 2653.9918037193797,
-     "swing_h": 2137.2698476432483,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4794.546274114878,
+     "life_at_high_h": 2654.999320029573,
+     "swing_h": 2139.5469540853046,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "life_at_low_h": 4687.760410895814,
-     "life_at_high_h": 2988.735985114048,
-     "swing_h": 1699.0244257817658,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4690.904610456021,
+     "life_at_high_h": 2990.0137437684566,
+     "swing_h": 1700.8908666875645,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "aon_loads.twt_interval",
-     "life_at_low_h": 3165.111525470884,
-     "life_at_high_h": 4854.728067906507,
-     "swing_h": 1689.6165424356232,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3166.5445800062093,
+     "life_at_high_h": 4858.100315712199,
+     "swing_h": 1691.5557357059893,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "rate.person_unknown (x1/2..x2)",
-     "life_at_low_h": 4230.4278827695025,
-     "life_at_high_h": 3362.01132365134,
-     "swing_h": 868.4165591181627,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4232.731627361259,
+     "life_at_high_h": 3363.9525236453314,
+     "swing_h": 868.7791037159272,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "battery.deploy_temp",
-     "life_at_low_h": 3350.6792880429234,
-     "life_at_high_h": 3943.168876251456,
-     "swing_h": 592.4895882085325,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3352.5748027421155,
+     "life_at_high_h": 3945.28204964041,
+     "swing_h": 592.7072468982947,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "rails.aon_efficiency",
-     "life_at_low_h": 3538.5366695447697,
-     "life_at_high_h": 4065.743707781334,
-     "swing_h": 527.2070382365641,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3540.327915752757,
+     "life_at_high_h": 4068.108650553655,
+     "swing_h": 527.7807348008982,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "battery.usable_fraction",
-     "life_at_low_h": 3600.5224188504108,
-     "life_at_high_h": 4105.26072499864,
-     "swing_h": 504.73830614822964,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3602.529801181214,
+     "life_at_high_h": 4107.547521546997,
+     "swing_h": 505.0177203657827,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "aon_loads.c6_light_sleep",
-     "life_at_low_h": 4007.4997225273037,
-     "life_at_high_h": 3655.729253291927,
-     "swing_h": 351.7704692353768,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4009.7973733125373,
+     "life_at_high_h": 3657.6411446583975,
+     "swing_h": 352.1562286541398,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "cortex.clip_time",
-     "life_at_low_h": 4086.457575208069,
-     "life_at_high_h": 3777.1201769386303,
-     "swing_h": 309.33739826943884,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4088.8466839365,
+     "life_at_high_h": 3779.161183083128,
+     "swing_h": 309.6855008533721,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "cortex.ir_led_power",
-     "life_at_low_h": 3998.4605630155984,
-     "life_at_high_h": 3703.51290712058,
-     "swing_h": 294.9476558950182,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 4000.7478575499795,
+     "life_at_high_h": 3705.4751188071314,
+     "swing_h": 295.2727387428481,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "cortex.sensor_start_time",
-     "life_at_low_h": 3968.469584985672,
-     "life_at_high_h": 3690.2689378606688,
-     "swing_h": 278.20064712500334,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3970.7226862291973,
+     "life_at_high_h": 3692.217136991671,
+     "swing_h": 278.50554923752634,
+     "base_h": 3897.2302419359676
     },
     {
      "name": "cortex.encode_power",
-     "life_at_low_h": 3978.582863221271,
-     "life_at_high_h": 3738.110098942844,
-     "swing_h": 240.4727642784269,
-     "base_h": 3895.0597494736357
+     "life_at_low_h": 3980.847466014734,
+     "life_at_high_h": 3740.109152637744,
+     "swing_h": 240.73831337698994,
+     "base_h": 3897.2302419359676
     }
    ],
    "spearman": [
     {
      "name": "aon_loads.radar_populated",
-     "spearman": -0.6586833807492084
+     "spearman": -0.658980462811951
     },
     {
      "name": "aon_loads.twt_interval",
-     "spearman": 0.39710032118375077
+     "spearman": 0.39727450627368616
     },
     {
      "name": "rate.person_unknown",
-     "spearman": -0.32231836511429585
+     "spearman": -0.3220991300622478
     },
     {
      "name": "aon_loads.c6_twt_wake_energy",
-     "spearman": -0.28951427697078563
+     "spearman": -0.28964372792210924
     },
     {
      "name": "battery.deploy_temp",
-     "spearman": 0.16254487671886217
+     "spearman": 0.1624077295165193
     },
     {
      "name": "battery.usable_fraction",
-     "spearman": 0.14391833549829583
+     "spearman": 0.1437735634959339
     },
     {
      "name": "rails.aon_efficiency",
-     "spearman": 0.14123306529808263
+     "spearman": 0.1412665351311663
     },
     {
      "name": "rate.false_wake",
-     "spearman": -0.11121747105354365
+     "spearman": -0.11010520946476302
     },
     {
      "name": "aon_loads.c6_light_sleep",
-     "spearman": -0.09318269954295673
+     "spearman": -0.0932125636130314
     },
     {
      "name": "cortex.ir_led_power",
-     "spearman": -0.08879991545399976
+     "spearman": -0.08882300017055748
     },
     {
      "name": "cortex.clip_time",
-     "spearman": -0.08673416093933539
+     "spearman": -0.08673074139382683
     },
     {
      "name": "rate.person_known",
-     "spearman": -0.08256222340590555
+     "spearman": -0.08193962949984906
     }
    ],
    "event_energy_j": {
     "person_known": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 0.0
     },
     "person_unknown": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     },
     "false_wake": {
-     "base": 1.3312729411764705,
+     "base": 1.3213064470588234,
      "clip": 0.0
     },
     "button": {
-     "base": 1.7703035294117648,
+     "base": 1.760295105882353,
      "clip": 12.446117647058824
     }
    }

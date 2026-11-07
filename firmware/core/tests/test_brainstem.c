@@ -30,6 +30,36 @@ static void bs_single_unknown_event(void)
                0.05 * (double)W.recs[0].rec.energy_mj);
 }
 
+/* The C6 charges cortex_active_mw while the job runs and then books the clip
+ * at cortex_clip_mw, whether the clip draws more or less than the pipeline
+ * (constants.yaml has encode_power < pipeline_power). N6 and C6 agree both ways. */
+static void bs_clip_energy_either_direction(void)
+{
+    static const int32_t deltas[3] = { -400, 0, 400 };
+    const sc_item_t items[] = { { SEC(10), SCI_PIR, 2000u, SCN_UNKNOWN, 0u, 0u, 0u } };
+    uint32_t k;
+    for (k = 0u; k < 3u; k++) {
+        sn_power_model_t pm = SN_POWER_MODEL_DEFAULT;
+        sn_bs_cfg_t cfg;
+        uint32_t clip_mj;
+        pm.cortex_clip_mw = (uint32_t)((int32_t)pm.cortex_active_mw + deltas[k]);
+        sn_bs_cfg_default(&cfg);
+        cfg.pm = &pm;
+        sc_world_init(&W, &cfg, 1000u);
+        sc_world_run(&W, items, 1u, SEC(60));
+        CHECK_EQ_INT(W.n_recs, 1u);
+        CHECK(W.recs[0].rec.has_clip);
+        clip_mj = sn_energy_mw_ms_to_mj(pm.cortex_clip_mw, W.pipe_cfg.clip_ms);
+        CHECK(W.recs[0].rec.energy_mj > clip_mj);
+        CHECK_NEAR((double)sc_cortex_mj(&W), (double)W.recs[0].rec.energy_mj,
+                   0.03 * (double)W.recs[0].rec.energy_mj);
+        CHECK_EQ_INT(sn_energy_mj(&W.bs.energy.cortex_clip_extra),
+                     (deltas[k] > 0) ? sn_energy_mw_ms_to_mj((uint32_t)deltas[k], W.pipe_cfg.clip_ms) : 0u);
+        printf("  clip %+d mW vs active: event %u mJ, C6 %u mJ\n", (int)deltas[k],
+               (unsigned)W.recs[0].rec.energy_mj, (unsigned)sc_cortex_mj(&W));
+    }
+}
+
 static void bs_false_wake_costs_about_a_joule(void)
 {
     const sc_item_t items[] = { { SEC(5), SCI_PIR, 2000u, SCN_CAT, 0u, 0u, 0u } };
@@ -37,8 +67,9 @@ static void bs_false_wake_costs_about_a_joule(void)
     sc_world_run(&W, items, 1u, SEC(30));
     CHECK_EQ_INT(W.n_recs, 1u);
     CHECK_EQ_INT(W.recs[0].rec.action, SN_ACTION_NONE);
-    CHECK(W.recs[0].rec.energy_mj >= 800u);
-    CHECK(W.recs[0].rec.energy_mj <= 1600u);
+    /* about one nominal no-clip event (power model + sim latencies) */
+    CHECK(W.recs[0].rec.energy_mj >= sc_nominal_event_mj(&W, false) / 2u);
+    CHECK(W.recs[0].rec.energy_mj <= (sc_nominal_event_mj(&W, false) * 3u) / 2u);
     CHECK_EQ_INT(W.infer.n_clips, 0u);
     CHECK_NEAR((double)sc_cortex_mj(&W), (double)W.recs[0].rec.energy_mj,
                0.10 * (double)W.recs[0].rec.energy_mj);
@@ -135,7 +166,7 @@ static void bs_quiet_day_sleeps(void)
     sc_world_run(&W, NULL, 0u, SEC(86400));
     CHECK_EQ_INT(W.n_recs, 0u);
     CHECK(W.loop_iters < 10u);                    /* deep sleep, no polling */
-    CHECK_EQ_INT(sn_energy_mj(&W.bs.energy.standby), 129600u);   /* 1.5 mW x 24 h */
+    CHECK_EQ_INT(sn_energy_mj(&W.bs.energy.standby), sc_standby_mj(&W, SEC(86400)));
     CHECK_EQ_INT(sc_cortex_mj(&W), 0u);
 }
 
@@ -215,6 +246,7 @@ int main(int argc, char **argv)
     TEST_BEGIN(argc, argv);
     RUN_TEST(bs_single_unknown_event);
     RUN_TEST(bs_false_wake_costs_about_a_joule);
+    RUN_TEST(bs_clip_energy_either_direction);
     RUN_TEST(bs_button_during_job_back_to_back);
     RUN_TEST(bs_button_while_idle_rings);
     RUN_TEST(bs_low_battery_refuses_and_reports);

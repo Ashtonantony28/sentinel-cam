@@ -1,15 +1,8 @@
 #include "sn_energy.h"
 #include <stddef.h>
 
-/* TODO-measure: placeholders from docs/PLAN.md 4.4 (see header). */
-const sn_power_model_t SN_POWER_MODEL_DEFAULT = {
-    .standby_uw       = 1500u,  /* ~400 uA @ 3.7 V with Wi-Fi TWT        */
-    .cortex_boot_mw   = 600u,
-    .cortex_active_mw = 1000u,  /* "~1 W x 3 s" inference                 */
-    .cortex_clip_mw   = 1200u,  /* "~1.2 W x 10 s" clip encode + upload    */
-    .boot_est_mj      = 120u,
-    .uplink_est_mj    = 300u,
-};
+/* SN_POWER_MODEL_DEFAULT is generated from hardware/power_model/constants.yaml
+ * into sn_power_model_gen.c by tools/gen_fw_power_model.py (do not hand-edit). */
 
 void sn_energy_reset(sn_energy_acc_t *acc)
 {
@@ -28,6 +21,14 @@ void sn_energy_add_nj(sn_energy_acc_t *acc, uint64_t nj)
     } else {
         acc->nj += nj;
     }
+}
+
+void sn_energy_sub_nj(sn_energy_acc_t *acc, uint64_t nj)
+{
+    if (acc == NULL) {
+        return;
+    }
+    acc->nj = (acc->nj > nj) ? (acc->nj - nj) : 0u;
 }
 
 void sn_energy_add_mw(sn_energy_acc_t *acc, uint32_t mw, uint32_t ms)

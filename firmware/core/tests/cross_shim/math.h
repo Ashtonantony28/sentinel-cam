@@ -5,6 +5,7 @@ double sqrt(double x);
 double floor(double x);
 double fabs(double x);
 float  roundf(float x);
+double exp(double x);
 #define isnan(x)    __builtin_isnan(x)
 #define isfinite(x) __builtin_isfinite(x)
 #endif

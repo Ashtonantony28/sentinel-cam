@@ -1,0 +1,4 @@
+# Only what the system interpreter does not already provide for ml/ + tools/
+# (torch, onnx, onnxruntime, numpy, cryptography, pyyaml come from ml/ and tools/ requirements).
+pydantic>=2.7
+pytest>=8

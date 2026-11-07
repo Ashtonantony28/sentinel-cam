@@ -68,7 +68,9 @@ def test_constants_load_and_contract(const):
 
 def test_constant_sources_resolve_to_urls_or_repo_docs(const):
     for sid, s in const.sources.items():
-        assert s.startswith(("https://", "docs/", "hardware/")), (sid, s)
+        assert s.startswith(("https://", "docs/", "hardware/", "ml/")), (sid, s)
+        if s.startswith(("docs/", "hardware/", "ml/")):  # repo paths must exist
+            assert (Path(__file__).resolve().parents[2] / s.split()[0]).exists(), (sid, s)
 
 
 def test_verify_ids_exist_in_register(const):

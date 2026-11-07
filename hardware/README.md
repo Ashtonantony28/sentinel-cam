@@ -10,7 +10,7 @@ make deps      # numpy, pyyaml, pytest (+ matplotlib, optional)
 
 | Path | What |
 |---|---|
-| `power_model/constants.yaml` | **Single source of truth** for every current, power, duration and energy (INTERFACES.md §6). Each value has `low/high`, a unit, a status (datasheet / third_party_measurement / derived / estimate / design_choice / spec / measured) and a source URL or "estimate". |
+| `power_model/constants.yaml` | **Single source of truth** for every current, power, duration and energy (INTERFACES.md §6). Each value has `low/high`, a unit, a status (datasheet / third_party_measurement / derived / estimate / design_choice / spec / measured / measured_on_model) and a source URL or "estimate". |
 | `power_model/scenarios.yaml` | Daily event mixes (plan mix, radio-off fallback, busy, quiet, radar populated). |
 | `power_model/sentinel_power/` | The model: battery-side energy accounting, Monte-Carlo (constants triangular in [low, high]; household event rate gamma, CV 0.4; Poisson daily counts), capacity derating (temperature, calendar fade, usable fraction, temperature-dependent self-discharge), radio-off mode, one-at-a-time tornado and Spearman sensitivity. |
 | `bom/bom.csv`, `bom/check_bom.py` | Rev A BOM and its checker. |
@@ -41,6 +41,8 @@ Monte-Carlo, 20,000 draws, seed 1 (`power_model/out/report.md`):
 | Plan mix + radar populated, TWT | 829 µA | 4.12 mW | 5.3 mo | 4.5 mo (3.3–6.2) | 8 % |
 
 Plan mix = plan §4.4: 10 person events/day (4 unknown → 8 s clip + upload), 20 false wakes/day, plus 24 status publishes/day.
+
+> **Update 2026-11-07 (integration):** `npu.person_det_gmac` (0.1117) and `npu.face_stage_gmac` (0.0191 + 0.2210 = 0.2401) now hold the MAC counts of ml/'s exported models (new status `measured_on_model`, source `ML`). The table above was produced with the old 0.7 / 0.25 GMAC estimates; the change is tiny: plan mix TWT 3.113 → 3.109 mW, nominal 7.05 → 7.06 months, MC median 6.44 → 6.46 months, P(≥ 6 mo) 63.8 → 64.3 %. `power_model/out/report.md` is regenerated with the new values. The firmware's `SN_POWER_MODEL_DEFAULT` is generated from this file (`tools/gen_fw_power_model.py`).
 
 ### Against the plan's ~9 months
 

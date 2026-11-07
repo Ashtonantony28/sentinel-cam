@@ -11,7 +11,9 @@
  *
  * Energy: standby_uw always; cortex_boot_mw while rails sequence / boot /
  * shut down; cortex_active_mw while READY/RUNNING; plus
- * (cortex_clip_mw - cortex_active_mw) x clip_ms reported by the job.
+ * (cortex_clip_mw - cortex_active_mw) x clip_ms reported by the job (added to
+ * cortex_clip_extra when positive; when the clip draws less than the
+ * pipeline, the difference is taken back off cortex_active).
  */
 #ifndef SN_BRAINSTEM_H
 #define SN_BRAINSTEM_H

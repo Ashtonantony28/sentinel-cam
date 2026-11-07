@@ -1,2 +1,5 @@
 cryptography>=42
 pytest>=7
+# gen_fw_power_model.py imports hardware/power_model (numpy, pyyaml)
+numpy>=1.26
+pyyaml>=6.0

@@ -24,3 +24,24 @@ M1–M3 on the STM32N6570-DK + ESP32-C6 DevKit: port WS2/WS3 libs onto real HAL,
 
 ## Testing rule
 Every workstream ships tests, and `make test` at the repo root runs all of them. CI (`.github/workflows/ci.yml`) runs the same target.
+
+## Integration status (2026-11-07)
+
+`make test` at the root runs every workstream plus `tests/integration` (cross-workstream
+contract tests), from a clean checkout (`make clean-build` removes all build dirs and venvs).
+CI: `.github/workflows/ci.yml` runs root `make test` on ubuntu-latest / Python 3.13, plus an
+OTA power-cut soak job with two extra seeds.
+
+| Boundary | How it is held | Test |
+|---|---|---|
+| hardware → firmware energy | `SN_POWER_MODEL_DEFAULT` is generated from `hardware/power_model/constants.yaml` by `tools/gen_fw_power_model.py` (reuses `sentinel_power`); firmware energy tests derive their expectations from it | `tools/tests/test_gen_fw_power_model.py` fails on a stale `sn_power_model_gen.c` |
+| ml → hardware | `npu.person_det_gmac` / `npu.face_stage_gmac` hold ml's MAC counts (status `measured_on_model`) | hardware pytest |
+| firmware → backend (§3 event) | event JSON from `event_json_dump` and from the scripted 24 h day validates with `EventMsg` and ingests via the in-memory bus into SQLite | `tests/integration/test_event_status_ingest.py` |
+| firmware → backend (§3 status) | new `sn_status` writer; brainstem fault reports map to `LOW_BATTERY / BROWNOUT / POWER_FAULT / JOB_TIMEOUT` | same file + `core.test_status.*` |
+| ml → tools → firmware/ota (§4 model OTA) | int8 ONNX export → `npu_fit` op-set hash → `sentinel_sign` kind=model → `ota_host_verify`: accepted when the firmware op-set hash matches, `ERR_OPSET` otherwise | `tests/integration/test_model_ota.py` |
+| fl → firmware (§5 head) | new `sn_head` reader of the 65-float LE blob; probabilities equal fl's numpy within 1e-6 | `tests/integration/test_fl_head.py` + `core.test_head.*` |
+
+Known gaps: the firmware energy model is rail-side for the cortex and leaves out the C6
+radio-awake current, converter loss, IR LEDs and the clip upload (~0.4 J per clip), so its
+day average (3.04 mW) is more optimistic than the hardware model's battery-side figure
+(3.11 mW plan mix). The hardware model's battery life is the number of record.

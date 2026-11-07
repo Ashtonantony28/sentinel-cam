@@ -24,8 +24,9 @@ STATUSES = {
     "design_choice",
     "spec",
     "measured",  # our own bench measurement; src must point at the log under hardware/
+    "measured_on_model",  # counted on our own exported model (e.g. MACs from ml/ npu_fit)
 }
-NEEDS_SOURCE = {"datasheet", "third_party_measurement", "derived", "spec", "measured"}
+NEEDS_SOURCE = {"datasheet", "third_party_measurement", "derived", "spec", "measured", "measured_on_model"}
 REQUIRED_FIELDS = ("value", "low", "high", "unit", "status")
 NON_CONSTANT_GROUPS = {"tables", "sources", "schema_version"}
 

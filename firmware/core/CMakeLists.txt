@@ -12,8 +12,11 @@ target_compile_options(sn_warnings INTERFACE
 add_library(sn_core STATIC
   src/sn_crc32.c
   src/sn_energy.c
+  src/sn_power_model_gen.c
   src/sn_json.c
   src/sn_event.c
+  src/sn_status.c
+  src/sn_head.c
   src/sn_gallery.c
   src/sn_power_seq.c
   src/sn_wake.c
@@ -47,6 +50,8 @@ endfunction()
 sn_add_test_exe(test_crc32)
 sn_add_test_exe(test_json)
 sn_add_test_exe(test_event)
+sn_add_test_exe(test_status)
+sn_add_test_exe(test_head)
 sn_add_test_exe(test_gallery)
 sn_add_test_exe(test_power_seq)
 sn_add_test_exe(test_wake)
@@ -78,6 +83,10 @@ if(SN_CLANG)
               -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/cross_compile.cmake)
   endforeach()
 endif()
+
+# Integration hook (tests/integration): evaluates an fl/ head blob on features.
+add_executable(head_eval tests/head_eval.c)
+target_link_libraries(head_eval PRIVATE sn_core sn_warnings)
 
 # Cross-check the event JSON with Python's json parser when available.
 find_package(Python3 COMPONENTS Interpreter QUIET)

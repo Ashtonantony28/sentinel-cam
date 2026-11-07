@@ -36,11 +36,18 @@ so the device matches what WS1 (`ml/golden`) and WS4 (backend) assume.
    the N6's estimate: the boot energy reported by the C6, plus active power × time, plus
    clip power × clip time, plus an uplink estimate. Over the scripted day it is within 1%
    of what the C6 integrates.
-6. **Contract gap.** When the brainstem refuses or loses the cortex (low battery,
-   brown-out, power fault, job timeout), there is no §3 event, because the N6 never ran.
-   These are reported through `sn_bs_ops_t.report` and counted. Proposed fix: carry them on
-   `sentinel/{dev}/status` (or add an action such as `REFUSED_LOW_BATT`). That is WS4's
-   decision.
+6. **Faults go on the §3 status topic.** When the brainstem refuses or loses the cortex
+   (low battery, brown-out, power fault, job timeout) there is no §3 event, because the N6
+   never ran. `sn_status` maps each `sn_bs_ops_t.report` to a reason
+   (`sn_status_reason_from_report`: LOW_BATT_REFUSED → `LOW_BATTERY`, POWER_FAULT →
+   `POWER_FAULT`, CORTEX_LOST → `BROWNOUT` if the power error was a brown-out, else
+   `POWER_FAULT`, JOB_TIMEOUT → `JOB_TIMEOUT`; WAKE_DROPPED is not a fault) and
+   `sn_status_to_json` writes `{"state","reason","ts","battery_mv"}`. Tightening: the
+   writer only emits a reason with `state:"fault"` and refuses `fault` without one (the
+   backend requires the latter and tolerates a reason on online/offline).
+7. **Energy constants are generated.** `src/sn_power_model_gen.c` (`SN_POWER_MODEL_DEFAULT`)
+   is written by `tools/gen_fw_power_model.py` from `hardware/power_model/constants.yaml`;
+   `tools/tests/test_gen_fw_power_model.py` fails when it is stale. Do not edit it.
 
 ## Layout
 
@@ -50,7 +57,10 @@ hal/sentinel_hal.h      HAL: time, GPIO, per-rail load switches + PG, cortex res
 include/, src/
   sn_types.h            shared enums/limits (wake sources, actions)
   sn_crc32              CRC-32/IEEE (nibble table)
-  sn_energy             power model (TODO-measure placeholders) + nJ accumulators
+  sn_energy             power model struct + nJ accumulators
+  sn_power_model_gen.c  GENERATED SN_POWER_MODEL_DEFAULT (tools/gen_fw_power_model.py)
+  sn_status             §3 status/fault JSON writer + report -> reason mapping
+  sn_head               §5 false-alert head: load 65 LE fp32 (fl/ wire form), logistic
   sn_json               bounded, allocation-free JSON writer (sticky overflow)
   sn_event              event record + INTERFACES.md §3 serializer
   sn_gallery            SGAL parse (zero-copy) / write, int8 quantize, cosine, matcher
@@ -103,7 +113,9 @@ on M55 and 14 KB on RV32, with zero static RAM.
 | test_wake | button debounce/chatter/edge-only press, never rate-limited; PIR spike rejection, holdoff, storm, exact window/cooldown; radar absent/confirm/any; timer (no burst after oversleep); priority; clock wrap |
 | test_pipeline | all 16 hit patterns of 2-of-4, early exit, known/unknown/no-face/mixed/two-known, face on 2nd frame, button with/without person, timer, camera/embed/clip failures, NaN/inf confidences, null ops, state trace, energy formula, record fields, policy table, clip id |
 | test_brainstem | end-to-end events via the scenario world: C6 vs N6 energy agreement, button queued during a job and served back-to-back without re-boot, low-battery refusal (cortex never powered), brown-out, power fault, quiet day (deep sleep, exact standby energy), timer, latched short pulse, job timeout, wake dropped while busy |
-| test_scenario_day | scripted 24 h day (below) |
+| test_status | exact §3 status strings, every reason, invalid state/reason combinations, every buffer capacity, report → reason mapping |
+| test_head | 260-byte LE layout, rejects (length, NaN/inf, NULL; output untouched), logistic incl. ±1000 logits |
+| test_scenario_day | scripted 24 h day (below); also prints EVENT/STATUS JSON lines that `tests/integration` ingests into the backend |
 | test_golden | consumes `ml/golden`: gallery blob (and byte-identical re-write), quantization edge cases, f32→i8 queries, 64 expected decisions + scores, 512 per-person scores, every bad blob's error |
 
 ### Scripted day (test_scenario_day)
@@ -114,20 +126,26 @@ doorbell press during a clip are seen at the right time.
 
 | Time | Script | Expected |
 |---|---|---|
-| 00:30–11:35 | 20 PIR false wakes (wind, cat with one frame over 0.5, headlights at 0.45) | 20 × `NONE`, about 1.2 J each |
+| 00:30–11:35 | 20 PIR false wakes (wind, cat with one frame over 0.5, headlights at 0.45) | 20 × `NONE`, about 0.9 J each |
 | 12:00, 13:10, 21:30 | 3 known people (ids 1, 2, 3) | 3 × `LOG_KNOWN` with the correct id |
 | 12:40, 15:00, 15:30, 17:30, 18:00 | unknown, back turned, unknown, known plus stranger, unknown | 5 × `NOTIFY_UNKNOWN_WITH_CLIP` |
-| 14:00–14:20 | PIR storm, one pulse every 3 s (400 pulses) | rate-limited to 16 wakes (19 J); without the limiter, 100 wakes (120 J) |
+| 14:00–14:20 | PIR storm, one pulse every 3 s (400 pulses) | rate-limited to 16 wakes (13.9 J); without the limiter, 100 wakes (86.6 J) |
 | 19:30 / 19:30:05 | visitor walks up, then presses the button during the clip | `NOTIFY` then `RING` with a clip, back to back with no second boot |
-| 20:00–21:00 | battery at 3350 mV; person at 20:15 | refused (`LOW_BATT_REFUSED`), cortex never powered |
-| 23:00 | cold cell sags 300 mV under load | brown-out during boot, `CORTEX_LOST`, 10 min lockout |
+| 20:00–21:00 | battery at 3350 mV; person at 20:15 | refused (`LOW_BATT_REFUSED` → status fault `LOW_BATTERY`), cortex never powered |
+| 23:00 | cold cell sags 300 mV under load | brown-out during boot, `CORTEX_LOST` (status fault `BROWNOUT`), 10 min lockout |
 | 08:00, 16:00 | 8 h health-check timer | 2 × `NONE` (TIMER) |
 
-The energy checks: standby is exactly 1.5 mW × 24 h (129.6 J). The sum of the N6 per-event
-`energy_mj` values is within 5% of what the C6 integrates (measured: 141.6 J vs 142.7 J).
-Each event falls in its envelope (no clip: 0.7–2 J; clip: 12–15 J). The day averages
-**3.15 mW, about 245 days** on 18.5 Wh, so the 6-month goal G1 is met. This lines up with
-the plan's §4.4 estimate of 2.9 mW.
+The energy checks derive every expectation from `SN_POWER_MODEL_DEFAULT` (generated from
+`constants.yaml`) and the sim latencies, so they follow the constants: standby is exactly
+`standby_uw` × 24 h; the sum of the N6 per-event `energy_mj` values is within 5% of what the C6
+integrates (measured: 97.6 J vs 98.2 J); outside the clip each event is within [0.5, 1.6] × the
+nominal no-clip event (`sc_nominal_event_mj`: boot_est + active × (camera start + 4 frames) +
+uplink_est; measured 0.77–0.92 J vs 0.92 J nominal) and the clip adds exactly clip_mw × clip_ms.
+With the constants.yaml numbers (standby 1.902 mW at the battery, cortex 350/850/800 mW boot/active/clip)
+the day averages **3.04 mW, about 254 days** on 18.5 Wh (it was 3.15 mW / 245 days with the plan
+placeholders). Note the cortex powers are rail-side (no converter loss, no C6 radio-awake current,
+no IR LEDs, no clip upload), so this is more optimistic than the hardware model's battery-side
+figure; see `hardware/README.md` for the battery-life number of record.
 
 ## Golden vectors (integration hook)
 
@@ -159,9 +177,10 @@ Implement the `sn_hal_*` functions in `hal/sentinel_hal.h` for each target:
 - `SN_N6_RAIL_SEQ` and the reset and boot timings in `src/sn_power_seq.c` are marked
   `TODO-verify-against-STM32N6-datasheet`: the rail order (3V3 → 1V8 → VDDCORE → VDDA),
   settle times, PG timeouts and off delays.
-- `SN_POWER_MODEL_DEFAULT` (`src/sn_energy.c`) and `SIM_LATENCY_DEFAULT`
-  (`sim/sim_infer.c`) are marked TODO-measure. When `hardware/power_model/constants.yaml`
-  lands (INTERFACES §6), keep these in sync with it.
+- `SN_POWER_MODEL_DEFAULT` is generated from `hardware/power_model/constants.yaml`
+  (change the YAML, run `python3 tools/gen_fw_power_model.py`). `SIM_LATENCY_DEFAULT`
+  (`sim/sim_infer.c`) is TODO-measure; its `publish_ms` must equal `radio.publish_time`
+  (test_pipeline checks `uplink_est_mj` = active power × `publish_ms`).
 - The battery thresholds (`batt_min_on_mv` 3400, hysteresis 50, brown-out 3200, lockout
   10 min) depend on the cell's internal resistance and temperature.
 

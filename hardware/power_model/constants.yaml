@@ -6,6 +6,7 @@
 #   low, high   uncertainty range (Monte-Carlo samples triangular(low, value, high))
 #   unit        one of the units in sentinel_power/units.py (converted to SI on load)
 #   status      datasheet | third_party_measurement | derived | estimate | design_choice | spec | measured
+#               | measured_on_model (counted on our own exported model, e.g. MACs from ml/ npu_fit)
 #   src         list of source IDs (see `sources:` at the bottom). Required unless status is
 #               estimate or design_choice.
 #   verify      optional TO-VERIFY ID from hardware/spec/to_verify.yaml
@@ -77,8 +78,8 @@ npu:
   npu_pj_per_mac:      {value: 3.6, low: 0.67, high: 16.0, unit: pJ_per_MAC, status: derived, src: [ARXIV_N6, MLPERF_TINY, NEURALART], note: "Marginal core-domain energy per int8 MAC. Fit E = E0 + k*MACs to arXiv:2505.15622 L-Perf results (AD autoencoder 0.154 mJ @ 264,192 MAC; ResNet-8 0.198 mJ @ 12.5 MMAC) -> k = 3.6 pJ/MAC, E0 = 0.153 mJ; DS-CNN (0.157 mJ) is consistent. Low = ST marketing 3 TOPS/W = 0.67 pJ/MAC (NPU only). High = ResNet-8 total energy / MACs (16 pJ/MAC, all overhead attributed to MACs). Excludes sensor, PSRAM/NOR, I/O rails.", verify: TV-09}
   npu_overhead_per_inference: {value: 0.153, low: 0.10, high: 0.25, unit: mJ, status: derived, src: [ARXIV_N6], note: "E0 from the same fit: per-inference fixed cost (pre/post, runtime, epoch setup) in the core domain.", verify: TV-09}
   npu_peak_gops:       {value: 600, low: 600, high: 600, unit: GOPS, status: datasheet, src: [NEURALART], note: "ST: 600 GOPS, NPU at 1 GHz."}
-  person_det_gmac:     {value: 0.7, low: 0.3, high: 1.5, unit: GMAC, status: estimate, note: "Per frame at 256x256 (YOLOv8n-class). WS1 should overwrite with its exported model's MAC count."}
-  face_stage_gmac:     {value: 0.25, low: 0.1, high: 0.5, unit: GMAC, status: estimate, note: "Face detect + MobileFaceNet embed per person event."}
+  person_det_gmac:     {value: 0.1117, low: 0.1, high: 0.7, unit: GMAC, status: measured_on_model, src: [ML], note: "Per frame, 256x256 int8 QAT person detector as exported by ml/ (111.7 M MAC counted by sentinel_ml.npu_fit). low ~ same model with minor changes; high = the earlier YOLOv8n-class estimate, in case a larger detector replaces it."}
+  face_stage_gmac:     {value: 0.2401, low: 0.2, high: 0.5, unit: GMAC, status: measured_on_model, src: [ML], note: "Face detect 160x160 (19.1 M MAC) + MobileFaceNet embed 112x112 (221.0 M MAC) per person event, counted by sentinel_ml.npu_fit on ml/ exports. More faces per event raise it (high)."}
   frames_per_event:    {value: 4, low: 4, high: 8, unit: count, status: spec, src: [INTERFACES], note: "Person present = >=2 of first 4 frames."}
 
 radio:
@@ -91,6 +92,7 @@ radio:
 sources:
   PLAN:          "docs/PLAN.md (this repo), sections 3-4"
   INTERFACES:    "docs/INTERFACES.md (this repo), section 2"
+  ML:            "ml/README.md and ml/artifacts/full/results.md (this repo): MAC counts from sentinel_ml.npu_fit on the exported int8 models"
   AN6000:        "https://www.st.com/resource/en/application_note/an6000-how-to-build-the-discrete-power-supply-for-stm32n6-mcus-stmicroelectronics.pdf"
   UM3300:        "https://www.st.com.cn/resource/en/user_manual/um3300-discovery-kit-with-stm32n657x0-mcu-stmicroelectronics.pdf"
   NEURALART:     "https://www.st.com/content/dam/st-developer-zone/st-edge-ai-suite/edge-ai-explained/pdf/presentation-ST-neural-art-accelerator-overview.pdf"

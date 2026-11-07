@@ -15,9 +15,17 @@ static void cb_dispatch(void *ctx, const sn_job_t *job)
 static void cb_report(void *ctx, sn_bs_report_t kind, sn_wake_src_t wake, uint32_t detail)
 {
     sc_world_t *w = (sc_world_t *)ctx;
+    sn_fault_reason_t reason = sn_status_reason_from_report(kind, detail);
     (void)wake;
-    (void)detail;
     w->reports[kind]++;
+    /* What the brainstem publishes on sentinel/{dev}/status (INTERFACES 3). */
+    if ((reason != SN_FAULT_NONE) && (w->n_status < SC_MAX_STATUS)) {
+        sn_status_t *st = &w->status[w->n_status++];
+        st->state = SN_STATUS_FAULT;
+        st->reason = reason;
+        st->ts_ms = sn_hal_unix_ms();
+        st->battery_mv = sn_hal_battery_mv();
+    }
 }
 
 void sc_world_init(sc_world_t *w, const sn_bs_cfg_t *cfg, uint32_t start_ms)
@@ -51,9 +59,12 @@ void sc_world_init(sc_world_t *w, const sn_bs_cfg_t *cfg, uint32_t start_ms)
 
     sim_infer_init(&w->infer, &w->ops);
     sn_pipe_cfg_default(&w->pipe_cfg);
-    w->pipe_cfg.dev = "c6n6a1b2c3d4";
+    w->pipe_cfg.dev = "c6a1b2c3d4e5";
     w->pipe_cfg.fw = "0.1.0";
     w->pipe_cfg.model = "det1-emb1";
+    if ((cfg != NULL) && (cfg->pm != NULL)) {
+        w->pipe_cfg.pm = cfg->pm;            /* N6 and C6 use the same model */
+    }
     sn_pipe_init(&w->pipe, &w->pipe_cfg, &w->ops, &w->gal);
 
     if (cfg != NULL) {
@@ -293,4 +304,23 @@ uint64_t sc_cortex_mj(const sc_world_t *w)
 {
     return (w->bs.energy.cortex_boot.nj + w->bs.energy.cortex_active.nj +
             w->bs.energy.cortex_clip_extra.nj + 500000u) / 1000000u;
+}
+
+uint32_t sc_nominal_event_mj(const sc_world_t *w, bool with_clip)
+{
+    const sn_power_model_t *pm = w->bs.cfg.pm;
+    const sim_latency_t *lat = &w->infer.lat;
+    uint32_t e = pm->boot_est_mj +
+                 sn_energy_mw_ms_to_mj(pm->cortex_active_mw,
+                                       lat->camera_start_ms + (4u * lat->frame_ms)) +
+                 pm->uplink_est_mj;
+    if (with_clip) {
+        e += sn_energy_mw_ms_to_mj(pm->cortex_clip_mw, w->pipe_cfg.clip_ms);
+    }
+    return e;
+}
+
+uint64_t sc_standby_mj(const sc_world_t *w, uint32_t ms)
+{
+    return ((uint64_t)w->bs.cfg.pm->standby_uw * (uint64_t)ms + 500000u) / 1000000u;
 }

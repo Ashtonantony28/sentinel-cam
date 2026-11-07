@@ -2,7 +2,7 @@
 #
 #   make test        pytest (signing tool + Python->C cross tests), then the
 #                    firmware/ota ctest suite (unit + fault injection, ASan/UBSan)
-#   make test-py     pytest only
+#   make test-py     pytest only (incl. the gen_fw_power_model.py freshness test)
 #   make test-ota    firmware/ota ctest only
 #   make fault-soak  long fault-injection run: make fault-soak RUNS=20000 SEED=123
 #   make deps        pip install -r requirements.txt

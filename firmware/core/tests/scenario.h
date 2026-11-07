@@ -7,10 +7,12 @@
 #define SCENARIO_H
 #include "sim_hal.h"
 #include "sim_infer.h"
+#include "sn_status.h"
 #include "sn_brainstem.h"
 #include "sn_pipeline.h"
 
 #define SC_MAX_RECORDS 128u
+#define SC_MAX_STATUS  32u
 #define SC_KNOWN       3u
 #define SC_TICK_MS     10u
 #define SC_UNIX_BASE   1793923200000ull   /* 2026-11-06T00:00:00Z */
@@ -86,6 +88,8 @@ typedef struct {
     uint32_t        reports[SN_BS_REPORT_COUNT];
     uint64_t        sum_event_mj;
     uint32_t        loop_iters;
+    sn_status_t     status[SC_MAX_STATUS];  /* fault statuses the C6 would publish */
+    uint32_t        n_status;
 } sc_world_t;
 
 /* cfg may be NULL for defaults. start_ms is the sim monotonic start time. */
@@ -96,5 +100,12 @@ void sc_world_run(sc_world_t *w, const sc_item_t *items, uint32_t n_items, uint3
 uint32_t sc_count(const sc_world_t *w, int action, int wake);
 /* Cortex-domain energy integrated by the brainstem, mJ. */
 uint64_t sc_cortex_mj(const sc_world_t *w);
+/* Nominal N6 energy of one event from the power model the world runs with and
+ * the sim latencies: boot_est + active x (camera start + 4 frames) + uplink_est,
+ * plus clip_mw x clip_ms when with_clip. Tests derive their envelopes from this
+ * instead of hard-coding numbers, so they follow constants.yaml. */
+uint32_t sc_nominal_event_mj(const sc_world_t *w, bool with_clip);
+/* Standby energy (mJ) the brainstem must integrate over ms, same rounding. */
+uint64_t sc_standby_mj(const sc_world_t *w, uint32_t ms);
 
 #endif

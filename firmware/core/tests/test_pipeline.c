@@ -355,6 +355,13 @@ static void pipe_energy_accounting(void)
                        SIM_LATENCY_DEFAULT.camera_start_ms + 3u * SIM_LATENCY_DEFAULT.frame_ms) +
                        pm->uplink_est_mj), (unsigned)want);
 
+    /* uplink_est_mj is the N6 staying up at active power while the event is
+     * published; the sim's publish latency must match it (both derive from
+     * radio.publish_time in constants.yaml), or C6 and N6 disagree per event. */
+    CHECK_NEAR((double)pm->uplink_est_mj,
+               (double)sn_energy_mw_ms_to_mj(pm->cortex_active_mw, SIM_LATENCY_DEFAULT.publish_ms),
+               1.0);
+
     /* N6 falls back to the model estimate when the C6 gives no boot energy */
     {
         sn_job_t j = job(SN_WAKE_PIR);

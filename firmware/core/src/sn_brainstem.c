@@ -232,9 +232,18 @@ void sn_bs_job_done(sn_brainstem_t *bs, const sn_job_result_t *res)
     /* Charge the cortex time up to now before changing state. */
     sn_pwr_tick(&bs->pwr, now);
     bs->stats.jobs_done++;
-    if ((res != NULL) && (bs->cfg.pm->cortex_clip_mw > bs->cfg.pm->cortex_active_mw)) {
-        sn_energy_add_mw(&bs->energy.cortex_clip_extra,
-                         bs->cfg.pm->cortex_clip_mw - bs->cfg.pm->cortex_active_mw, res->clip_ms);
+    /* The clip ran at cortex_clip_mw, but was charged at cortex_active_mw while
+     * RUNNING: book the difference, in whichever direction it goes. */
+    if (res != NULL) {
+        const sn_power_model_t *pm = bs->cfg.pm;
+        if (pm->cortex_clip_mw >= pm->cortex_active_mw) {
+            sn_energy_add_mw(&bs->energy.cortex_clip_extra,
+                             pm->cortex_clip_mw - pm->cortex_active_mw, res->clip_ms);
+        } else {
+            sn_energy_sub_nj(&bs->energy.cortex_active,
+                             (uint64_t)(pm->cortex_active_mw - pm->cortex_clip_mw) *
+                                 (uint64_t)res->clip_ms * 1000u);
+        }
     }
     if (!sn_pwr_is_on(&bs->pwr)) {
         bs->state = SN_BS_IDLE;
