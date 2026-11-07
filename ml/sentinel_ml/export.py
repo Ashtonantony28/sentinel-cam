@@ -76,6 +76,9 @@ def main(argv=None):
     rep = analyze(out)
     print(format_report(rep))
     print("parity float vs int8:", json.dumps(par))
+    with open(os.path.splitext(out)[0] + ".opset.txt", "w") as f:
+        f.write("".join(o + "\n" for o in rep["op_set"]))
+    print(f"op-set hash {rep['op_set_sha256']} (op list: {os.path.splitext(out)[0]}.opset.txt)")
     print(f"wrote {out}")
     return 0 if not rep["violations"] else 1
 

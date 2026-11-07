@@ -54,6 +54,22 @@ COMPUTE = {"Conv", "Relu", "Clip", "Add", "Concat", "Resize", "MaxPool", "Averag
            "BatchNormalization", "ConvTranspose", "Exp", "Div", "Sqrt", "ReduceMean", "ReduceSum", "Tanh"}
 
 
+OPSET_DOMAIN = b"sentinel-opset-v1\n"
+OPSET_EXCLUDE = {"constant", "identity"}  # graph plumbing, not runtime requirements
+
+
+def canonical_op_list(op_types) -> list:
+    """Sorted unique lower-case ONNX op names (Constant/Identity excluded)."""
+    return sorted({o.strip().lower() for o in op_types} - OPSET_EXCLUDE - {""})
+
+
+def op_set_hash(op_types) -> str:
+    """INTERFACES.md §4 model_op_set_hash: sha256(b"sentinel-opset-v1\\n" + one op per line, each + "\\n").
+    Reference implementation: ``tools/sentinel_sign.py opset``."""
+    body = "".join(o + "\n" for o in canonical_op_list(op_types)).encode("utf-8")
+    return hashlib.sha256(OPSET_DOMAIN + body).hexdigest()
+
+
 def _attr(n, name, default=None):
     for a in n.attribute:
         if a.name == name:
@@ -209,12 +225,12 @@ def analyze(path_or_model) -> dict:
                     float_inputs.append(f"{n.op_type} ({n.name}) input '{t}'")
 
     has_qdq = hist.get("QuantizeLinear", 0) > 0
-    op_set = sorted(set(hist) - {"Constant", "Identity"})
+    op_set = canonical_op_list(hist)
     return {
         "model": path_or_model if isinstance(path_or_model, str) else g.name,
         "ops": dict(sorted(hist.items(), key=lambda kv: -kv[1])),
         "op_set": op_set,
-        "op_set_sha256": hashlib.sha256("\n".join(op_set).encode()).hexdigest(),
+        "op_set_sha256": op_set_hash(op_set),
         "violations": violations,
         "int8": has_qdq,
         "float_compute_inputs": float_inputs,
@@ -236,7 +252,8 @@ def format_report(r: dict) -> str:
              f"  params : {r['params']:,}  (weights {r['weight_bytes'] / 1024:.1f} KiB)",
              f"  MACs   : {r['macs'] / 1e6:.2f} M",
              f"  peak activations (est.): {r['peak_activation_bytes'] / 1024:.1f} KiB at {r['peak_activation_at']}",
-             f"  op set sha256: {r['op_set_sha256'][:16]}…",
+             f"  op set: {', '.join(r['op_set'])}",
+             f"  op set hash (INTERFACES §4 model_op_set_hash): {r['op_set_sha256']}",
              "  op histogram:"]
     for k, v in r["ops"].items():
         tag = "" if k in ALLOWED else "   <-- NOT ALLOWED"
@@ -256,6 +273,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("models", nargs="+")
     ap.add_argument("--json", help="write the report(s) as JSON to this path")
+    ap.add_argument("--opset-out", help="write the canonical op list (one per line) of the LAST model here; "
+                    "feed it to `tools/sentinel_sign.py sign --op-set-file`")
     ap.add_argument("--require-int8", action="store_true",
                     help="also fail if a compute op consumes a non-quantised activation")
     a = ap.parse_args(argv)
@@ -266,6 +285,9 @@ def main(argv=None) -> int:
         print(format_report(r))
         if r["violations"] or (a.require_int8 and (not r["int8"] or r["float_compute_inputs"])):
             rc = 1
+    if a.opset_out:
+        with open(a.opset_out, "w") as f:
+            f.write("".join(o + "\n" for o in reports[-1]["op_set"]))
     if a.json:
         with open(a.json, "w") as f:
             json.dump(reports if len(reports) > 1 else reports[0], f, indent=2)

@@ -23,10 +23,11 @@ MAX_LOG = 6.0
 
 
 def level_ranges(strides=STRIDES):
-    """Max-distance ranges per level, proportional to stride with overlap."""
+    """Max-distance ranges per level, proportional to stride, overlapping:
+    s8 (0, 40], s16 (32, 80], s32 (64, inf)."""
     r = []
     for i, s in enumerate(strides):
-        lo = 0.0 if i == 0 else 4.0 * s
+        lo = 0.0 if i == 0 else 2.0 * s
         hi = float("inf") if i == len(strides) - 1 else 5.0 * s
         r.append((lo, hi))
     return r
@@ -169,7 +170,7 @@ def decode(level_outs, strides=STRIDES, conf_thr=0.05, iou_thr=0.5, n_kpt=0, max
     for o, s in zip(level_outs, strides):
         C, H, W = o.shape
         o = o.reshape(C, -1).T
-        score = 1.0 / (1.0 + np.exp(-o[:, 0]))
+        score = 1.0 / (1.0 + np.exp(-np.clip(o[:, 0], -60, 60)))
         m = score >= conf_thr
         if not m.any():
             continue

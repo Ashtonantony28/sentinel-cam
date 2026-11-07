@@ -34,8 +34,9 @@ from .npu_fit import analyze
 from .quant import (OrtModel, calibrate_ptq, export_float_onnx, export_quant_onnx, ort_ptq, prepare_quant)
 from .train import eval_detector, train_detector, train_embedder
 
-# Parity tolerances (float ONNX vs int8 QDQ ONNX, same inputs). Stated here, asserted
-# in tests/test_pipeline.py and reported in results.md.
+# Parity tolerances: float ONNX vs int8 PTQ QDQ ONNX (same weights), same inputs. Asserted
+# by tests/test_quant.py on a non-trivially initialised model and reported in results.md.
+# map_gap / tar_gap are the acceptance gaps for the trained int8 models (QAT and PTQ).
 TOL = {
     "det_prob_max_abs": 0.15,     # max |sigmoid(obj_f) - sigmoid(obj_q)| over all cells
     "det_prob_mean_abs": 0.01,    # mean of the same
@@ -102,6 +103,26 @@ def parity_detector(f_outs, q_outs):
         cos = (a * b).sum(1) / (np.linalg.norm(a, axis=1) * np.linalg.norm(b, axis=1) + 1e-12)
         res["feat_cos_min"] = float(cos.min())
     return res
+
+
+def check_parity(kind: str, p: dict) -> list:
+    """Return the list of violated tolerances (empty = pass)."""
+    bad = []
+    if kind == "emb":
+        if p["cos_mean"] < TOL["emb_cos_mean"]:
+            bad.append("emb_cos_mean")
+        if p["cos_min"] < TOL["emb_cos_min"]:
+            bad.append("emb_cos_min")
+        return bad
+    if p["prob_max_abs"] > TOL["det_prob_max_abs"]:
+        bad.append("det_prob_max_abs")
+    if p["prob_mean_abs"] > TOL["det_prob_mean_abs"]:
+        bad.append("det_prob_mean_abs")
+    if p["box_rel_l2"] > TOL["det_box_rel_l2"]:
+        bad.append("det_box_rel_l2")
+    if "feat_cos_min" in p and p["feat_cos_min"] < TOL["feat_cos_min"]:
+        bad.append("feat_cos_min")
+    return bad
 
 
 def parity_embedder(f, q):
@@ -216,7 +237,9 @@ def run_model(kind: str, cfg: dict, out: str, log=print, lat_runs: int = 20, see
         fit = analyze(p)
         r["npu_fit"] = {"pass": not fit["violations"], "violations": fit["violations"],
                         "float_compute_inputs": len(fit["float_compute_inputs"]),
-                        "ops": fit["ops"], "op_set_sha256": fit["op_set_sha256"]}
+                        "ops": fit["ops"], "op_set": fit["op_set"], "op_set_sha256": fit["op_set_sha256"]}
+        with open(os.path.splitext(p)[0] + ".opset.txt", "w") as f:
+            f.write("".join(o + "\n" for o in fit["op_set"]))
         r["params"], r["macs"] = fit["params"], fit["macs"]
         r["weight_bytes"], r["peak_activation_bytes"] = fit["weight_bytes"], fit["peak_activation_bytes"]
         r["latency_cpu_1t"] = measure_latency_ms(OrtModel(p, threads=1), xs_par[:1], runs=lat_runs)
@@ -235,6 +258,15 @@ def run_model(kind: str, cfg: dict, out: str, log=print, lat_runs: int = 20, see
     return R
 
 
+def _energy_cell(e):
+    base = f"{e['mj_per_inference']:.3f}"
+    if e.get("overhead_mj") is not None:
+        base += f" + {e['overhead_mj']:.3f} = **{e['mj_with_overhead']:.3f} mJ**"
+    else:
+        base += " mJ"
+    return base + f" [{e['mj_range'][0]:.3f}–{e['mj_range'][1]:.3f}]"
+
+
 def _fmt_pct(x):
     return f"{100 * x:.1f}"
 
@@ -243,15 +275,14 @@ def render_markdown(results: dict) -> str:
     env = results["env"]
     L = [f"Profile `{results['profile']}` — **synthetic data** — {env['cpu']} ({env['threads']} threads), "
          f"torch {env['torch']}, onnxruntime {env['ort']}, total {results['total_s']:.0f} s.", ""]
-    L += ["| Model | Input | Params | MACs | Weights (int8) | Peak act. (int8, est.) | NPU-fit | Energy/inf. MACs x pJ/MAC (range) | CPU latency float / int8 (1 thread) |",
+    L += ["| Model | Input | Params | MACs | Weights (int8) | Peak act. (int8, est.) | NPU-fit | Energy/inf.: MACs x pJ/MAC (+ fixed) [MAC-term range] | CPU latency float / int8 (1 thread) |",
           "|---|---|---|---|---|---|---|---|---|"]
     for k, R in results["models"].items():
         q = R["variants"]["qat"]
         f = R["variants"]["float"]
         L.append(f"| {k} | {R['input'][2]}x{R['input'][3]} | {q['params']:,} | {q['macs'] / 1e6:.1f} M | "
                  f"{q['weight_bytes'] / 1024:.0f} KiB | {q['peak_activation_bytes'] / 1024:.0f} KiB | "
-                 f"{'PASS' if q['npu_fit']['pass'] else 'FAIL'} | {R['energy']['mj_per_inference']:.3f} mJ "
-                 f"({R['energy']['mj_range'][0]:.3f}–{R['energy']['mj_range'][1]:.3f}) | "
+                 f"{'PASS' if q['npu_fit']['pass'] else 'FAIL'} | {_energy_cell(R['energy'])} | "
                  f"{f['latency_cpu_1t']['median_ms']:.1f} / {q['latency_cpu_1t']['median_ms']:.1f} ms |")
     L += ["", "| Model | Metric | float | int8 PTQ (torch.ao) | int8 QAT (torch.ao) | int8 PTQ (onnxruntime) |",
           "|---|---|---|---|---|---|"]
@@ -263,19 +294,27 @@ def render_markdown(results: dict) -> str:
             row = [f"{_fmt_pct(V[v][mname])}" if v in V else "–" for v in ("float", "ptq", "qat", "ort_ptq")]
             label = {"map50": "mAP@0.5 (%)"}.get(mname, mname.replace("tar@far=", "TAR@FAR=") + " (%)")
             L.append(f"| {k} | {label} | " + " | ".join(row) + " |")
-    L += ["", "Parity, float ONNX vs int8 QDQ ONNX (QAT), on 32 validation inputs (tolerance in brackets):", ""]
+    L += ["", "Parity, float ONNX vs int8 QDQ ONNX on 32 validation inputs. The tolerances apply to PTQ "
+          "(same weights, so the gap is pure quantisation error) and are asserted by `check_parity`. "
+          "QAT also fine-tunes the weights, so its distance from the float model is shown for information; "
+          "the QAT criterion is the task-metric gap (mAP / TAR) in the table above.", "",
+          "| Model | Variant | Objectness prob max abs diff | mean abs diff | Box rel-L2 | Feature/embedding cosine (min) | Within tolerance |",
+          "|---|---|---|---|---|---|---|"]
     for k, R in results["models"].items():
-        p = R["variants"]["qat"]["parity"]
-        if k == "emb":
-            L.append(f"- {k}: cosine mean {p['cos_mean']:.4f} [>= {TOL['emb_cos_mean']}], "
-                     f"min {p['cos_min']:.4f} [>= {TOL['emb_cos_min']}]")
-        else:
-            s = (f"- {k}: objectness prob max |Δ| {p['prob_max_abs']:.3f} [<= {TOL['det_prob_max_abs']}], "
-                 f"mean |Δ| {p['prob_mean_abs']:.4f} [<= {TOL['det_prob_mean_abs']}], "
-                 f"box rel-L2 {p['box_rel_l2']:.3f} [<= {TOL['det_box_rel_l2']}]")
-            if "feat_cos_min" in p:
-                s += f", 64-d feature cosine min {p['feat_cos_min']:.4f} [>= {TOL['feat_cos_min']}]"
-            L.append(s)
+        for v in ("ptq", "ort_ptq", "qat"):
+            if v not in R["variants"]:
+                continue
+            p = R["variants"][v]["parity"]
+            ok = "yes" if not check_parity(k, p) else "no"
+            if v == "qat":
+                ok = "n/a (info)"
+            if k == "emb":
+                L.append(f"| {k} | {v} | – | – | – | {p['cos_min']:.4f} (mean {p['cos_mean']:.4f}) | {ok} |")
+            else:
+                fc = f"{p['feat_cos_min']:.4f}" if "feat_cos_min" in p else "–"
+                L.append(f"| {k} | {v} | {p['prob_max_abs']:.3f} | {p['prob_mean_abs']:.4f} | {p['box_rel_l2']:.3f} "
+                         f"| {fc} | {ok} |")
+    L += ["", "Tolerances (PTQ): " + ", ".join(f"{k} {v}" for k, v in TOL.items()) + "."]
     e = results["models"][next(iter(results["models"]))]["energy"]
     L += ["", f"Energy = MACs x {e['pj_per_mac']} pJ/MAC (range from the file's low/high) from `{e['source']}`."]
     if e["overhead_mj"] is not None:

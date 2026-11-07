@@ -1,34 +1,29 @@
 import pytest
 import torch
 import torch.nn as nn
+from torch.ao.nn.quantized import FloatFunctional
+from torch.ao.quantization import DeQuantStub, QuantStub
 
 from sentinel_ml.models import (STRIDES, build_embedder, build_face_detector, build_person_detector, count_params,
                                 fold_all_bn)
 from sentinel_ml.models.blocks import ConvBNAct
 
-ALLOWED_MODULES = (nn.Conv2d, nn.BatchNorm2d, nn.ReLU, nn.Identity, nn.Upsample, nn.AdaptiveAvgPool2d, nn.Linear,
-                   nn.Sequential, nn.ModuleList)
-
-
-def _leaf_types(m):
-    return {type(x) for x in m.modules() if not list(x.children())}
+ALLOWED = (nn.Conv2d, nn.BatchNorm2d, nn.ReLU, nn.Identity, nn.Upsample, nn.AdaptiveAvgPool2d, nn.Linear,
+           FloatFunctional, QuantStub, DeQuantStub)
 
 
 @pytest.mark.parametrize("build", [build_person_detector, build_face_detector, build_embedder])
 def test_only_npu_friendly_modules(build):
-    m = build()
-    from torch.ao.nn.quantized import FloatFunctional
-    from torch.ao.quantization import DeQuantStub, QuantStub
-    for t in _leaf_types(m):
-        assert issubclass(t, ALLOWED_MODULES + (FloatFunctional, QuantStub, DeQuantStub)), t
+    leaves = {type(x) for x in build().modules() if not list(x.children())}
+    for t in leaves:
+        assert issubclass(t, ALLOWED), t
     for t in (nn.SiLU, nn.Hardswish, nn.PReLU, nn.GELU, nn.Sigmoid):
-        assert t not in _leaf_types(m)
+        assert t not in leaves
 
 
 def test_person_detector_shapes_and_budget():
     m = build_person_detector().eval()
-    params = count_params(m) - count_params(m.aux)
-    assert params < 1_000_000
+    assert count_params(m) - count_params(m.aux) < 1_000_000
     outs = m(torch.rand(2, 3, 256, 256))
     assert [tuple(o.shape) for o in outs[:3]] == [(2, 5, 256 // s, 256 // s) for s in STRIDES]
     assert tuple(outs[3].shape) == (2, 64)  # false-alert feature (INTERFACES §5)
@@ -48,8 +43,7 @@ def test_embedder_normalised_128():
     e = m(torch.rand(3, 3, 112, 112))
     assert e.shape == (3, 128)
     torch.testing.assert_close(e.norm(dim=1), torch.ones(3))
-    raw = m(torch.rand(1, 3, 112, 112), normalize=False)
-    assert raw.shape == (1, 128)
+    assert m(torch.rand(1, 3, 112, 112), normalize=False).shape == (1, 128)
 
 
 @pytest.mark.parametrize("build,size", [(build_person_detector, 256), (build_embedder, 112)])
@@ -57,7 +51,7 @@ def test_fold_bn_is_exact(build, size):
     m = build()
     m.train()
     for _ in range(3):
-        m(torch.rand(4, 3, size, size))  # non-trivial BN stats
+        m(torch.rand(4, 3, size, size))
     m.eval()
     x = torch.rand(2, 3, size, size)
     with torch.no_grad():
