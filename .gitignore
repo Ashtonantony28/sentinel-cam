@@ -5,4 +5,5 @@ build/
 *.onnx
 *.pt
 .pytest_cache/
-data/
+/data/
+ml/data/
