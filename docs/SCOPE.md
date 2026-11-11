@@ -41,7 +41,9 @@ OTA power-cut soak job with two extra seeds.
 | ml → tools → firmware/ota (§4 model OTA) | int8 ONNX export → `npu_fit` op-set hash → `sentinel_sign` kind=model → `ota_host_verify`: accepted when the firmware op-set hash matches, `ERR_OPSET` otherwise | `tests/integration/test_model_ota.py` |
 | fl → firmware (§5 head) | new `sn_head` reader of the 65-float LE blob; probabilities equal fl's numpy within 1e-6 | `tests/integration/test_fl_head.py` + `core.test_head.*` |
 
-Known gaps: the firmware energy model is rail-side for the cortex and leaves out the C6
-radio-awake current, converter loss, IR LEDs and the clip upload (~0.4 J per clip), so its
-day average (3.04 mW) is more optimistic than the hardware model's battery-side figure
-(3.11 mW plan mix). The hardware model's battery life is the number of record.
+Energy models (updated 2026-11-11): the generated firmware constants are now battery-side
+(cortex powers divided by `rails.cortex_efficiency`, clip upload folded into `cortex_clip_mw`).
+The firmware's scripted day averages 3.29 mW (235 days); it differs from the hardware model's
+3.11 mW plan mix because the scripted day includes a PIR storm, a brown-out and more events. It
+still leaves out the C6's radio-awake current and IR LEDs. The hardware model's battery life is
+the number of record.

@@ -38,11 +38,16 @@ def test_mapping_uses_hardware_model():
     # standby is the hardware model's battery-side TWT standby: I_bat x V_bat
     i_bat = float(sp.model.standby_current_at_battery(p, scen))
     assert d["standby_uw"][1] == pytest.approx(i_bat * p["battery.nominal_v"] * 1e6)
-    assert d["cortex_boot_mw"][0] == round(p["cortex.boot_power"] * 1e3)
-    assert d["cortex_active_mw"][0] == round(p["cortex.pipeline_power"] * 1e3)
-    assert d["cortex_clip_mw"][0] == round(p["cortex.encode_power"] * 1e3)
-    assert d["boot_est_mj"][1] == pytest.approx(p["cortex.boot_power"] * p["cortex.boot_time"] * 1e3)
-    assert d["uplink_est_mj"][1] == pytest.approx(p["cortex.pipeline_power"] * p["radio.publish_time"] * 1e3)
+    eta = p["rails.cortex_efficiency"]
+    assert d["cortex_boot_mw"][0] == round(p["cortex.boot_power"] / eta * 1e3)
+    assert d["cortex_active_mw"][0] == round(p["cortex.pipeline_power"] / eta * 1e3)
+    upload_s = p["cortex.clip_size"] / p["cortex.hosted_throughput"]
+    clip_j = p["cortex.encode_power"] * p["cortex.clip_time"] + p["cortex.upload_power"] * upload_s
+    assert d["cortex_clip_mw"][0] == round(clip_j / p["cortex.clip_time"] / eta * 1e3)
+    # battery-side: never below the rail-side load power
+    assert d["cortex_active_mw"][0] >= round(p["cortex.pipeline_power"] * 1e3)
+    assert d["boot_est_mj"][1] == pytest.approx(p["cortex.boot_power"] * p["cortex.boot_time"] / eta * 1e3)
+    assert d["uplink_est_mj"][1] == pytest.approx(p["cortex.pipeline_power"] * p["radio.publish_time"] / eta * 1e3)
 
 
 def test_check_detects_a_changed_constant(tmp_path):
@@ -53,7 +58,7 @@ def test_check_detects_a_changed_constant(tmp_path):
     c.write_text(changed)
     out = tmp_path / "gen.c"
     assert gen.main(["--constants", str(c), "--out", str(out)]) == 0
-    assert ".cortex_boot_mw   = 450u," in out.read_text()
+    assert ".cortex_boot_mw   = 529u," in out.read_text()  # 0.45 W / 0.85
     # the checked-in file no longer matches the changed source
     assert gen.main(["--constants", str(c), "--check"]) == 1
     assert gen.main(["--constants", str(c), "--out", str(out), "--check"]) == 0

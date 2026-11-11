@@ -14,9 +14,11 @@ Field mapping (nominal values; integers rounded half away from zero):
   standby_uw       battery-side standby power of the hardware model in TWT mode (scenario
                    plan_mix_twt: C6 light sleep + TWT service periods, sensors, regulator Iq,
                    charger, gauge, pack protection), i.e. sum(standby_breakdown()).
+  All cortex fields are battery-side: rail-side power / rails.cortex_efficiency.
   cortex_boot_mw   cortex.boot_power
   cortex_active_mw cortex.pipeline_power
-  cortex_clip_mw   cortex.encode_power
+  cortex_clip_mw   average over the clip window of encode (encode_power x clip_time) plus the
+                   clip upload (upload_power x clip_size / hosted_throughput)
   boot_est_mj      cortex.boot_power x cortex.boot_time
   uplink_est_mj    cortex.pipeline_power x radio.publish_time.
                    Rationale: in firmware, uplink_est_mj is charged to EVERY event (not only
@@ -25,9 +27,9 @@ Field mapping (nominal values; integers rounded half away from zero):
                    record; the C6 integrates cortex_active_mw over the same window). The clip
                    upload itself (cortex.upload_power x clip_size / hosted_throughput, ~0.4 J)
                    only applies to clip events, so it must not go into a per-event constant.
-                   It is not represented by the firmware model today (see the report).
-The cortex numbers are rail-side (load) powers as written in constants.yaml; the hardware model
-divides them by rails.cortex_efficiency for battery-side energy. standby_uw is battery-side.
+                   It is folded into cortex_clip_mw instead.
+Everything is battery-side, matching the hardware model (changed 2026-11-11; before that the
+cortex fields were rail-side and the firmware day average was optimistic).
 """
 from __future__ import annotations
 
@@ -66,14 +68,19 @@ def derive(constants_path: Path = CONSTANTS, scenarios_path: Path = SCENARIOS) -
     scen = sp.load_scenarios(scenarios_path)[STANDBY_SCENARIO]
     p = const.nominal()  # SI
     standby_w = float(sum(sp.standby_breakdown(p, scen).values()))
+    eta = p["rails.cortex_efficiency"]
+    upload_s = p["cortex.clip_size"] / p["cortex.hosted_throughput"]  # clip_size is in bits after SI conversion
+    clip_j = p["cortex.encode_power"] * p["cortex.clip_time"] + p["cortex.upload_power"] * upload_s
     exact = {
         "standby_uw": (standby_w * 1e6, f"hardware model standby at the battery, {STANDBY_SCENARIO} (TWT)"),
-        "cortex_boot_mw": (p["cortex.boot_power"] * 1e3, "cortex.boot_power"),
-        "cortex_active_mw": (p["cortex.pipeline_power"] * 1e3, "cortex.pipeline_power"),
-        "cortex_clip_mw": (p["cortex.encode_power"] * 1e3, "cortex.encode_power"),
-        "boot_est_mj": (p["cortex.boot_power"] * p["cortex.boot_time"] * 1e3, "cortex.boot_power x cortex.boot_time"),
-        "uplink_est_mj": (p["cortex.pipeline_power"] * p["radio.publish_time"] * 1e3,
-                          "cortex.pipeline_power x radio.publish_time"),
+        "cortex_boot_mw": (p["cortex.boot_power"] / eta * 1e3, "cortex.boot_power / rails.cortex_efficiency"),
+        "cortex_active_mw": (p["cortex.pipeline_power"] / eta * 1e3, "cortex.pipeline_power / rails.cortex_efficiency"),
+        "cortex_clip_mw": (clip_j / p["cortex.clip_time"] / eta * 1e3,
+                           "(encode_power x clip_time + upload_power x clip_size/hosted_throughput) / clip_time / rails.cortex_efficiency"),
+        "boot_est_mj": (p["cortex.boot_power"] * p["cortex.boot_time"] / eta * 1e3,
+                        "cortex.boot_power x cortex.boot_time / rails.cortex_efficiency"),
+        "uplink_est_mj": (p["cortex.pipeline_power"] * p["radio.publish_time"] / eta * 1e3,
+                          "cortex.pipeline_power x radio.publish_time / rails.cortex_efficiency"),
     }
     out = {}
     for k in FIELDS:
